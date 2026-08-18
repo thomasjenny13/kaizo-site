@@ -1,17 +1,77 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaizo</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400&family=Space+Mono:wght@400&family=Unbounded:wght@800&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/landing.css">
 </head>
 
 <body>
+    <div id="landing">
+        <svg class="connectors" aria-hidden="true">
+            <g id="tracking-boxes">
+                <rect class="tracking-box" data-fragment="top"></rect>
+                <rect class="tracking-box" data-fragment="left"></rect>
+                <rect class="tracking-box" data-fragment="right"></rect>
+                <rect class="tracking-box" data-fragment="bottom"></rect>
+            </g>
+            <line class="connector" data-fragment="top"></line>
+            <line class="connector" data-fragment="left"></line>
+            <line class="connector" data-fragment="right"></line>
+            <line class="connector" data-fragment="bottom"></line>
+        </svg>
 
-    <div class="logo">
-        <img src="images/logo.png" alt="Kaizo">
+        <svg id="landing-logo" viewBox="0 0 1080 1080" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Logo Kaizo">
+            <g id="logo">
+                <path class="logo-fill" d="M523.13,816.29l-163.13,232.98c56.3,19.9,116.88,30.73,180,30.73,83.84,0,163.21-19.11,234.01-53.2l-250.87-210.51Z"/>
+                <path class="logo-fill" d="M651.24,633.34l302.43,253.77c78.84-93.86,126.33-214.94,126.33-347.11s-46.19-249.91-123.08-343.21l-305.68,436.55Z"/>
+                <path class="logo-fill" d="M360,661.37L782.8,57.55C709.81,20.74,627.33,0,540,0,476.89,0,416.3,10.83,360,30.73v630.64Z"/>
+                <path class="logo-fill" d="M137.51,180.01C52,275.54,0,401.7,0,540s52,264.46,137.51,359.99V180.01Z"/>
+            </g>
+
+            <g id="pieces" aria-hidden="true">
+                <path id="piece-top" class="piece" data-fragment="top" data-href="projets.html"
+                    d="M360,661.37L782.8,57.55C709.81,20.74,627.33,0,540,0,476.89,0,416.3,10.83,360,30.73v630.64Z"/>
+                <path id="piece-left" class="piece" data-fragment="left" data-href="#"
+                    d="M137.51,180.01C52,275.54,0,401.7,0,540s52,264.46,137.51,359.99V180.01Z"/>
+                <path id="piece-right" class="piece" data-fragment="right" data-href="contact.html"
+                    d="M651.24,633.34l302.43,253.77c78.84-93.86,126.33-214.94,126.33-347.11s-46.19-249.91-123.08-343.21l-305.68,436.55Z"/>
+                <path id="piece-bottom" class="piece" data-fragment="bottom" data-href="apropos.html"
+                    d="M523.13,816.29l-163.13,232.98c56.3,19.9,116.88,30.73,180,30.73,83.84,0,163.21-19.11,234.01-53.2l-250.87-210.51Z"/>
+            </g>
+        </svg>
+
+        <nav class="nav" aria-label="Navigation principale">
+            <a class="nav-item nav-top" href="projets.html" data-fragment="top">
+                <span class="nav-label">PROJETS</span>
+            </a>
+            <a class="nav-item nav-left" href="#" data-fragment="left">
+                <span class="nav-label">FRAGILE</span>
+            </a>
+            <a class="nav-item nav-right" href="contact.html" data-fragment="right">
+                <span class="nav-label">CONTACT</span>
+            </a>
+            <a class="nav-item nav-bottom" href="apropos.html" data-fragment="bottom">
+                <span class="nav-label">À PROPOS</span>
+            </a>
+        </nav>
+
+        <div class="brand-mark">KAIZO</div>
+
+        <div class="hero">
+            <h1 class="hero-title">Bienvenue</h1>
+            <p class="hero-phonetic">\bjɛ̃.və.ny\</p>
+            <p class="hero-tagline">Formule de bienveillance ou de civilité dont on se sert à l’égard d’une personne qui arrive.</p>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="js/landing.js"></script>
 </body>
+
 </html>
