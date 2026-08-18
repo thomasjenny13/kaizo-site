@@ -42,9 +42,9 @@ body {
 
 .page-eyebrow {
     margin: 0 0 1.2rem;
-    font-family: "Fraunces", "Space Grotesk", serif;
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-family: "Newsreader", "Space Grotesk", serif;
     font-weight: 500;
+    font-size: clamp(1.9rem, 3.8vw, 2.6rem);
     color: var(--black);
 }
 
@@ -55,6 +55,10 @@ body {
     line-height: 1.85;
     letter-spacing: 0.02em;
     color: var(--gray);
+}
+
+.page-text + .page-text {
+    margin-top: 1.2rem;
 }
 
 .contact-actions {
@@ -78,9 +82,11 @@ body {
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-.contact-button:hover {
-    background: var(--red);
-    color: var(--white);
+@media (hover: hover) and (pointer: fine) {
+    .contact-button:hover {
+        background: var(--red);
+        color: var(--white);
+    }
 }
 
 .back-link {
@@ -95,6 +101,150 @@ body {
     text-decoration: none;
 }
 
-.back-link:hover {
-    color: #ff1a2e;
+@media (hover: hover) and (pointer: fine) {
+    .back-link:hover {
+        color: #ff1a2e;
+    }
+}
+
+/* ── Project grid (projets.html) ── */
+
+.page--wide {
+    max-width: 56rem;
+}
+
+.project-list {
+    margin-top: 2.5rem;
+    border-top: 1px solid #e5e5e5;
+}
+
+.project-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.9rem 0;
+    border-bottom: 1px solid #e5e5e5;
+    text-decoration: none;
+    color: var(--black);
+}
+
+.project-row-main {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.project-thumb {
+    flex: none;
+    width: 4rem;
+    height: 4rem;
+    object-fit: cover;
+    background: #fafafa;
+}
+
+.project-thumb--empty {
+    border: 1px dashed #ccc;
+}
+
+.project-row-title {
+    font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+    font-size: clamp(1.3rem, 2.8vw, 1.9rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    transition: color 0.25s ease;
+}
+
+.project-row-meta {
+    flex: none;
+    font-family: "Space Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray);
+    text-align: right;
+    white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .project-row:hover .project-row-title {
+        color: var(--red);
+    }
+}
+
+/* ── Project detail page ── */
+
+.project-header {
+    margin-bottom: 2rem;
+}
+
+.project-header + .page-text {
+    margin-bottom: 2.5rem;
+}
+
+.project-title {
+    margin: 0 0 0.8rem;
+    font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--black);
+}
+
+.project-meta-line {
+    margin: 0;
+    font-family: "Space Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+}
+
+.project-image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #ccc;
+    font-family: "Space Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #aaa;
+}
+
+.project-photo {
+    display: block;
+    width: 100%;
+    margin-bottom: 2.5rem;
+    background: #fafafa;
+}
+
+.project-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.project-gallery .project-photo {
+    margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+    .project-gallery {
+        grid-template-columns: 1fr;
+    }
+}
+
+.project-caption {
+    margin: -1.8rem 0 2.5rem;
+    font-family: "Space Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: #999;
 }
