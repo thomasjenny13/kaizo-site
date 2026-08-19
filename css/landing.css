@@ -96,6 +96,13 @@ body {
 
 .piece {
     fill: var(--black);
+    /* Invisible stroke pads out the real tappable area beyond the piece's
+       visible silhouette — some pieces (fragile especially) are thin
+       slivers that are easy to miss with a finger even though the visual
+       shape itself is unchanged (transparent still counts as "painted"
+       for hit-testing purposes). */
+    stroke: transparent;
+    stroke-width: 50;
     transform-origin: center center;
     transform-box: fill-box;
     pointer-events: none;
