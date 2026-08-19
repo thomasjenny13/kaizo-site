@@ -9,41 +9,339 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&family=Unbounded:wght@800&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/page.css">
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        .page.page--wide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Stacked mobile layout can run slightly taller than very short
+           viewports — allow a fallback page scroll there instead of
+           clipping the second wheel outright. */
+        @media (max-width: 640px) {
+            html, body {
+                overflow-y: auto;
+            }
+
+            .page.page--wide {
+                padding: 1.5rem 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <a class="brand-mark" href="index.html">KAIZO</a>
 
     <main class="page page--wide">
-        <p class="page-eyebrow">projets</p>
-        <p class="page-text">Une sélection de travaux — identités visuelles, affiches et supports de communication.</p>
+        <div class="wheel-columns">
+            <div class="wheel-column">
+                <p class="wheel-index">01 — Affiches</p>
+                <div class="wheel">
+                    <div class="wheel-ring">
+                        <a class="wheel-tile wheel-tile--empty" href="projet-03.html" style="--a: -100deg"></a>
+                        <a class="wheel-tile" href="projet-02.html" data-project="tdm-morges" style="--a: -60deg">
+                            <img src="images/projets/affiches/tdm-morges/thumb.png" alt="">
+                        </a>
+                        <a class="wheel-tile" href="projet-02.html" data-project="tdm-morges" style="--a: -20deg">
+                            <img src="images/projets/affiches/tdm-morges/01.png" alt="">
+                        </a>
+                        <a class="wheel-tile" href="projet-06.html" data-project="seven" style="--a: 20deg">
+                            <img src="images/projets/affiches/seven/logo.svg" alt="">
+                        </a>
+                        <a class="wheel-tile wheel-tile--empty" href="projet-03.html" style="--a: 60deg"></a>
+                    </div>
+                </div>
+            </div>
 
-        <div class="project-list">
-            <a class="project-row" href="projet-01.html">
-                <div class="project-row-main">
-                    <img class="project-thumb" src="images/projets/mousse/02-motif.png" alt="">
-                    <span class="project-row-title">Scop</span>
+            <div class="wheel-column">
+                <p class="wheel-index">02 — Logos</p>
+                <div class="wheel">
+                    <div class="wheel-ring">
+                        <a class="wheel-tile" href="projet-01.html" data-project="scop" style="--a: -140deg">
+                            <img src="images/projets/logos/scop/thumb.png" alt="">
+                        </a>
+                        <a class="wheel-tile" href="projet-01.html" data-project="scop" style="--a: -100deg">
+                            <img src="images/projets/logos/scop/logo.svg" alt="">
+                        </a>
+                        <a class="wheel-tile" href="projet-04.html" data-project="tj" style="--a: -60deg">
+                            <img src="images/projets/logos/tj/thumb.png" alt="" style="--art-scale: 0.62">
+                        </a>
+                        <a class="wheel-tile" href="projet-04.html" data-project="tj" style="--a: -20deg">
+                            <img src="images/projets/logos/tj/logo.svg" alt="" style="--art-scale: 0.62">
+                        </a>
+                        <a class="wheel-tile" href="projet-05.html" data-project="t" style="--a: 20deg">
+                            <img src="images/projets/logos/t/thumb.png" alt="" style="--art-scale: 1.4">
+                        </a>
+                        <a class="wheel-tile" href="projet-05.html" data-project="t" style="--a: 60deg">
+                            <img src="images/projets/logos/t/logo.svg" alt="" style="--art-scale: 1.4">
+                        </a>
+                        <a class="wheel-tile" href="projet-06.html" data-project="seven" style="--a: 100deg">
+                            <img src="images/projets/logos/seven/logo.svg" alt="">
+                        </a>
+                    </div>
                 </div>
-                <span class="project-row-meta">Logo — 2026</span>
-            </a>
-            <a class="project-row" href="projet-02.html">
-                <div class="project-row-main">
-                    <div class="project-thumb project-thumb--empty"></div>
-                    <span class="project-row-title">Projet 02</span>
-                </div>
-                <span class="project-row-meta">[Affiche] — [Année]</span>
-            </a>
-            <a class="project-row" href="projet-03.html">
-                <div class="project-row-main">
-                    <div class="project-thumb project-thumb--empty"></div>
-                    <span class="project-row-title">Projet 03</span>
-                </div>
-                <span class="project-row-meta">[Communication visuelle] — [Année]</span>
-            </a>
+            </div>
         </div>
     </main>
 
     <a class="back-link" href="index.html?open=1">← retour</a>
+
+    <script>
+        (function () {
+            // Each wheel keeps its own progress and only reacts to
+            // scroll/touch input while the pointer is over it, so spinning
+            // one column never affects the other.
+            var STEP = 40; // degrees between adjacent tiles — must match the --a spacing in the HTML
+
+            var wheelEls = document.querySelectorAll(".wheel");
+            var centerState = new Map();
+            var jackpotArmed = true;
+
+            function checkJackpot() {
+                if (centerState.size < wheelEls.length) return;
+                var tiles = [];
+                var allSeven = true;
+                centerState.forEach(function (state) {
+                    if (!state.tile || state.project !== "seven" || state.effective > 8) {
+                        allSeven = false;
+                    } else {
+                        tiles.push(state.tile);
+                    }
+                });
+                if (allSeven) {
+                    if (jackpotArmed) {
+                        jackpotArmed = false;
+                        triggerJackpot(tiles);
+                    }
+                } else {
+                    jackpotArmed = true;
+                }
+            }
+
+            function triggerJackpot(tiles) {
+                tiles.forEach(function (tile) {
+                    tile.classList.remove("wheel-tile--jackpot");
+                    void tile.offsetWidth; // restart the animation if it's still running
+                    tile.classList.add("wheel-tile--jackpot");
+                });
+
+                var banner = document.createElement("div");
+                banner.className = "jackpot-banner";
+                banner.textContent = "7 • 7 — JACKPOT";
+                document.body.appendChild(banner);
+                banner.addEventListener("animationend", function () {
+                    banner.remove();
+                });
+            }
+
+            wheelEls.forEach(function (wheel) {
+                // Bind scroll/touch to the whole column, not just the 3D
+                // wheel box — tiles project outside that box via perspective,
+                // so a narrower hit area caused a stutter the moment the
+                // cursor crossed off the (invisible) inner boundary.
+                var hitArea = wheel.closest(".wheel-column") || wheel;
+                // Read each tile's base angle once up front — calling
+                // getComputedStyle() on every tile on every animation frame
+                // (as this used to) forces a style recalc each time and was
+                // a real source of jank, especially on mobile.
+                var tiles = Array.prototype.map.call(wheel.querySelectorAll(".wheel-tile"), function (tile) {
+                    return { el: tile, base: parseFloat(tile.style.getPropertyValue("--a")) || 0 };
+                });
+                var progress = 0;
+                var target = 0;
+                var velocity = 0;
+                var mode = "idle"; // "follow" | "coast" | "magnet"
+                var snapTimeout = null;
+                var snapFrame = null;
+
+                function apply() {
+                    wheel.style.setProperty("--wheel-offset", progress + "deg");
+
+                    var frontTile = null;
+                    var frontAbs = Infinity;
+
+                    // Fade + "magnetize" tiles based on distance from front-center:
+                    // the closest tile grows slightly (slot-machine snap feel) while
+                    // the ones rotating away shrink back and fade so they don't
+                    // visually bleed through the front-facing tile.
+                    tiles.forEach(function (t) {
+                        var effective = ((t.base + progress) % 360 + 540) % 360 - 180;
+                        var absEffective = Math.abs(effective);
+                        var fade = Math.max(0, 1 - absEffective / 70);
+                        var magnet = Math.max(0, 1 - absEffective / (STEP / 2));
+                        t.el.style.opacity = fade;
+                        t.el.style.setProperty("--tile-scale", (1 + magnet * 0.18).toFixed(3));
+                        t.el.style.pointerEvents = fade < 0.15 ? "none" : "";
+
+                        if (absEffective < frontAbs) {
+                            frontAbs = absEffective;
+                            frontTile = t.el;
+                        }
+                    });
+
+                    centerState.set(wheel, {
+                        tile: frontTile,
+                        project: frontTile && frontTile.dataset.project,
+                        effective: frontAbs
+                    });
+                    checkJackpot();
+                }
+
+                function stopSnap() {
+                    if (snapFrame) {
+                        cancelAnimationFrame(snapFrame);
+                        snapFrame = null;
+                    }
+                }
+
+                function runFollow() {
+                    // Eases progress toward the raw scroll target instead of
+                    // jumping straight to it — a physical mouse wheel sends
+                    // input in big discrete notches (a trackpad's are tiny
+                    // and frequent), so without this, each notch — and
+                    // especially a reversal — snaps instantly instead of
+                    // gliding.
+                    mode = "follow";
+                    var lastTime = null;
+                    (function step(time) {
+                        if (mode !== "follow") return;
+                        if (lastTime === null) lastTime = time;
+                        var dt = Math.min((time - lastTime) / (1000 / 60), 3) || 1;
+                        lastTime = time;
+
+                        var prev = progress;
+                        progress += (target - progress) * Math.min(1, 0.35 * dt);
+                        velocity = progress - prev;
+                        apply();
+
+                        snapFrame = requestAnimationFrame(step);
+                    })();
+                }
+
+                function runMagnet() {
+                    mode = "magnet";
+                    // Find the smallest rotation delta that brings any one
+                    // tile's effective angle exactly to 0 — the tiles aren't
+                    // necessarily phased on multiples of STEP from 0, so this
+                    // checks each tile's own base angle rather than assuming
+                    // a fixed grid.
+                    var bestDelta = 0;
+                    tiles.forEach(function (t) {
+                        var raw = -t.base - progress;
+                        var delta = ((raw % 360) + 540) % 360 - 180;
+                        if (Math.abs(delta) < Math.abs(bestDelta) || bestDelta === 0) {
+                            bestDelta = delta;
+                        }
+                    });
+                    var snapTarget = progress + bestDelta;
+
+                    // Damped spring pulling the (by now nearly stopped)
+                    // wheel the rest of the way onto the nearest tile.
+                    var lastTime = null;
+                    (function step(time) {
+                        if (lastTime === null) lastTime = time;
+                        var dt = Math.min((time - lastTime) / (1000 / 60), 3) || 1;
+                        lastTime = time;
+
+                        var diff = snapTarget - progress;
+                        velocity = (velocity + diff * 0.02 * dt) * Math.pow(0.72, dt);
+                        progress += velocity * dt;
+                        apply();
+
+                        if (Math.abs(diff) < 0.05 && Math.abs(velocity) < 0.02) {
+                            progress = snapTarget;
+                            target = progress;
+                            velocity = 0;
+                            apply();
+                            snapFrame = null;
+                            return;
+                        }
+                        snapFrame = requestAnimationFrame(step);
+                    })();
+                }
+
+                function runCoast() {
+                    mode = "coast";
+                    // Keeps spinning on its own momentum once you stop
+                    // scrolling/lift the mouse, slowly losing speed to
+                    // friction, then hands off to the magnet once it's
+                    // basically stopped.
+                    var lastTime = null;
+                    (function step(time) {
+                        if (lastTime === null) lastTime = time;
+                        var dt = Math.min((time - lastTime) / (1000 / 60), 3) || 1;
+                        lastTime = time;
+
+                        velocity *= Math.pow(0.965, dt);
+                        progress += velocity * dt;
+                        apply();
+
+                        if (Math.abs(velocity) < 0.12) {
+                            velocity = 0;
+                            snapFrame = null;
+                            runMagnet();
+                            return;
+                        }
+                        snapFrame = requestAnimationFrame(step);
+                    })();
+                }
+
+                function scheduleSnap() {
+                    clearTimeout(snapTimeout);
+                    snapTimeout = setTimeout(function () {
+                        stopSnap();
+                        runCoast();
+                    }, 120);
+                }
+
+                hitArea.addEventListener("wheel", function (e) {
+                    e.preventDefault();
+                    if (mode !== "follow") {
+                        target = progress; // resync — coast/magnet moved progress without updating target
+                        stopSnap();
+                        runFollow();
+                    }
+                    target += e.deltaY * 0.06;
+                    scheduleSnap();
+                }, { passive: false });
+
+                var touchY = null;
+                hitArea.addEventListener("touchstart", function (e) {
+                    touchY = e.touches[0].clientY;
+                    stopSnap();
+                    clearTimeout(snapTimeout);
+                    target = progress;
+                }, { passive: true });
+                hitArea.addEventListener("touchmove", function (e) {
+                    if (touchY === null) return;
+                    var dy = touchY - e.touches[0].clientY;
+                    touchY = e.touches[0].clientY;
+                    target += dy * 0.3;
+                    if (mode !== "follow") {
+                        stopSnap();
+                        runFollow();
+                    }
+                    e.preventDefault();
+                }, { passive: false });
+                hitArea.addEventListener("touchend", function () {
+                    touchY = null;
+                    scheduleSnap();
+                });
+
+                apply();
+            });
+        })();
+    </script>
 </body>
 
 </html>

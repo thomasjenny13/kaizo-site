@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_4" data-name="Calque 4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 540 540">
+  <defs>
+    <style>
+      .cls-1 {
+        mask: url(#mask);
+      }
+
+      .cls-2 {
+        fill: #0f0b0c;
+      }
+
+      .cls-3 {
+        fill: #fff;
+      }
+    </style>
+    <mask id="mask" x="0" y="-117.5" width="540" height="820" maskUnits="userSpaceOnUse">
+      <circle class="cls-3" cx="270" cy="270" r="270"/>
+    </mask>
+  </defs>
+  <g class="cls-1">
+    <g>
+      <polygon class="cls-2" points="180 77.5 330 77.5 330 -117.5 0 -117.5 0 77.5 0 387.5 180 387.5 180 77.5"/>
+      <path class="cls-2" d="M360-117.5V432.5s0,30-30,30h-120c-30,0-30-30-30-30v-15H0v15c0,149.12,120.88,270,270,270s270-120.88,270-270V-117.5h-180Z"/>
+    </g>
+  </g>
+</svg>

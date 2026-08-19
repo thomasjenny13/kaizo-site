@@ -188,7 +188,7 @@
         const labels = {
             top: { x: labelOffset, y: -marginY },
             right: { x: marginX, y: labelOffset },
-            bottom: { x: -labelOffset, y: marginYBottom },
+            bottom: { x: -(labelOffset + 50), y: marginYBottom },
             left: { x: -marginX, y: -(labelOffset + 50) }
         };
 

@@ -107,70 +107,144 @@ body {
     }
 }
 
-/* ── Project grid (projets.html) ── */
+/* ── Project wheel (projets.html) — a static 3D fan of tiles. The page
+   doesn't scroll; a wheel/touch listener drives the rotation directly
+   (see the inline script), real focusable links. ── */
+
+.wheel-columns {
+    display: flex;
+    width: 100%;
+    gap: 2.5rem;
+    align-items: flex-start;
+}
+
+.wheel-column {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.wheel-index {
+    margin: 0 0 0.75rem;
+    font-family: "Space Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red);
+    opacity: 0.7;
+}
+
+.wheel {
+    --tile-size: 15rem;
+    --tile-radius: 30rem;
+    width: 100%;
+    perspective: 1800px;
+    height: 34rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel-ring {
+    position: relative;
+    width: 1px;
+    height: 1px;
+    transform-style: preserve-3d;
+}
+
+.wheel-tile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    margin: calc(var(--tile-size) / -2) 0 0 calc(var(--tile-size) / -2);
+    display: block;
+    text-decoration: none;
+    /* wide radius relative to tile size keeps the fan's rungs from
+       overlapping — see the trig note above each column in the HTML */
+    transform: rotateX(calc(var(--a) + var(--wheel-offset, 0deg))) translateZ(var(--tile-radius)) scale(var(--tile-scale, 1));
+}
+
+.wheel-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Each logo's artwork fills a different share of its own canvas (some
+       bleed edge-to-edge, some sit in a lot of padding), so object-fit alone
+       makes them read as wildly different sizes. --art-scale is a per-image
+       correction (set inline in the HTML) so they look consistent at a glance. */
+    transform: scale(var(--art-scale, 1));
+}
+
+.wheel-tile--empty {
+    border: 1px dashed #ddd;
+}
+
+@keyframes jackpot-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 18, 34, 0.55); }
+    70% { box-shadow: 0 0 0 2.5rem rgba(212, 18, 34, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 18, 34, 0); }
+}
+
+.wheel-tile--jackpot {
+    animation: jackpot-pulse 0.9s ease-out;
+}
+
+@keyframes jackpot-banner {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+.jackpot-banner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 50;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--red);
+    background: var(--white);
+    font-family: "Space Mono", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    pointer-events: none;
+    opacity: 0;
+    animation: jackpot-banner 1.1s ease-out forwards;
+}
+
+@media (max-width: 640px) {
+    .wheel-columns {
+        flex-direction: column;
+        /* Tiles swing well past the wheel's own box near the edge of their
+           fade range (perspective foreshortening pushes them out further
+           than the box height suggests) — this gap needs to comfortably
+           clear that overshoot or the two reels visually collide. */
+        gap: 6rem;
+    }
+
+    .wheel-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .wheel-index {
+        text-align: center;
+    }
+
+    .wheel {
+        --tile-size: 7.5rem;
+        --tile-radius: 10rem;
+        height: 15rem;
+        perspective: 900px;
+    }
+}
 
 .page--wide {
-    max-width: 56rem;
-}
-
-.project-list {
-    margin-top: 2.5rem;
-    border-top: 1px solid #e5e5e5;
-}
-
-.project-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1.9rem 0;
-    border-bottom: 1px solid #e5e5e5;
-    text-decoration: none;
-    color: var(--black);
-}
-
-.project-row-main {
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-}
-
-.project-thumb {
-    flex: none;
-    width: 4rem;
-    height: 4rem;
-    object-fit: cover;
-    background: #fafafa;
-}
-
-.project-thumb--empty {
-    border: 1px dashed #ccc;
-}
-
-.project-row-title {
-    font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
-    font-size: clamp(1.3rem, 2.8vw, 1.9rem);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
-    transition: color 0.25s ease;
-}
-
-.project-row-meta {
-    flex: none;
-    font-family: "Space Mono", monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--gray);
-    text-align: right;
-    white-space: nowrap;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .project-row:hover .project-row-title {
-        color: var(--red);
-    }
+    max-width: 64rem;
 }
 
 /* ── Project detail page ── */
