@@ -14,6 +14,57 @@
     const TRACKING_PADDING = 16;
     const LABEL_GAP = 10;
 
+    // Temporary on-screen debug log — add ?debug=1 to the URL to see, right
+    // on the page, exactly which element every tap/click actually lands on.
+    // No devtools needed. Safe to remove once the mobile tap issue is found.
+    if (new URLSearchParams(location.search).get("debug") === "1") {
+        const dbg = document.createElement("div");
+        dbg.style.cssText = "position:fixed;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;" +
+            "background:rgba(0,0,0,0.85);color:#0f0;font:11px/1.4 monospace;padding:8px;z-index:99999;" +
+            "pointer-events:none;white-space:pre-wrap;";
+        document.body.appendChild(dbg);
+        const log = (msg) => {
+            const line = document.createElement("div");
+            line.textContent = new Date().toISOString().slice(11, 19) + " " + msg;
+            dbg.prepend(line);
+        };
+        document.addEventListener("pointerdown", (e) => {
+            const x = Math.round(e.clientX), y = Math.round(e.clientY);
+            const efp = document.elementFromPoint(e.clientX, e.clientY);
+            const vv = window.visualViewport;
+            log("pointerdown -> " + (e.target.id || e.target.className || e.target.tagName) + " @ " + x + "," + y +
+                " | elementFromPoint=" + (efp ? (efp.id || efp.tagName) : "null"));
+            log("  pageX/Y=" + Math.round(e.pageX) + "," + Math.round(e.pageY) +
+                " screenX/Y=" + Math.round(e.screenX) + "," + Math.round(e.screenY) +
+                " dpr=" + window.devicePixelRatio);
+            if (vv) {
+                log("  visualViewport scale=" + vv.scale.toFixed(2) + " offset=" + Math.round(vv.offsetLeft) + "," + Math.round(vv.offsetTop) +
+                    " size=" + Math.round(vv.width) + "x" + Math.round(vv.height));
+            }
+            log("  innerW/H=" + window.innerWidth + "x" + window.innerHeight + " scrollX/Y=" + Math.round(window.scrollX) + "," + Math.round(window.scrollY));
+            document.querySelectorAll(".piece").forEach((p) => {
+                const r = p.getBoundingClientRect();
+                const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+                let fillHit = "n/a";
+                try {
+                    const ctm = p.getScreenCTM().inverse();
+                    const svgPt = p.ownerSVGElement.createSVGPoint();
+                    svgPt.x = e.clientX;
+                    svgPt.y = e.clientY;
+                    const local = svgPt.matrixTransform(ctm);
+                    fillHit = p.isPointInFill(local) + " (stroke:" + p.isPointInStroke(local) + ")";
+                } catch (err) {
+                    fillHit = "ERR:" + err.message;
+                }
+                log("  " + p.id + " rect=" + Math.round(r.left) + "," + Math.round(r.top) + " " + Math.round(r.width) + "x" + Math.round(r.height) + (inside ? " BBOX_HIT" : "") + " isPointInFill=" + fillHit);
+            });
+        }, true);
+        document.addEventListener("click", (e) => {
+            log("click -> " + (e.target.id || e.target.className || e.target.tagName) + " href=" + (e.target.dataset ? e.target.dataset.href : "") + " tagHref=" + (e.target.getAttribute ? e.target.getAttribute("href") : ""));
+        }, true);
+        window.__kaizoDebugLog = log;
+    }
+
     function trackingRect(pieceRect) {
         return {
             left: pieceRect.left - TRACKING_PADDING,
@@ -664,10 +715,21 @@
     });
 
     let resizeTimeout;
+    let lastResizeWidth = window.innerWidth;
     window.addEventListener("resize", () => {
         if (connectorsActive) updateOverlay();
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(repositionOpen, 150);
+        resizeTimeout = setTimeout(() => {
+            // Mobile Safari fires "resize" when its URL bar collapses/expands
+            // on scroll/tap — that only changes innerHeight, not innerWidth.
+            // Re-laying-out (and re-animating) pieces for that silently moves
+            // them right after the user opened the view, so taps miss. A
+            // real resize/orientation change always changes the width too.
+            const width = window.innerWidth;
+            if (width === lastResizeWidth) return;
+            lastResizeWidth = width;
+            repositionOpen();
+        }, 150);
     });
 
     window.addEventListener("load", () => {
