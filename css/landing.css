@@ -107,6 +107,7 @@ body {
     transform-box: fill-box;
     pointer-events: none;
     cursor: default;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .shard-group {
@@ -145,6 +146,7 @@ body {
     opacity: 0;
     pointer-events: none;
     transition: color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #landing.is-open .nav-item {

@@ -459,6 +459,14 @@
         gsap.killTweensOf(pieces);
         gsap.killTweensOf(navItems);
 
+        // getPieceRestOffsets() (called inside getTargets()) only measures
+        // correctly while pieces sit untransformed at their rest position —
+        // but by the time a resize/rotation calls repositionOpen(), they're
+        // already spread out from the last layout. Without resetting them
+        // first, it measures the wrong reference point and every position
+        // comes out wrong, compounding further on each subsequent resize.
+        gsap.set(pieces, { x: 0, y: 0, rotation: 0, scale: 1 });
+
         const { pieces: pieceTargets, labels: labelTargets } = getTargets();
 
         Object.entries(pieceTargets).forEach(([key, target]) => {
