@@ -157,6 +157,19 @@ body {
     }
 }
 
+@media (max-width: 640px) {
+    /* Real touch testing on iOS showed taps on the rotated, irregular piece
+       shapes themselves miss unpredictably even when they land within the
+       piece's own bounding box — a rotated non-convex SVG path just isn't a
+       reliable touch target. A plain rectangle is, so on mobile the label's
+       invisible tap padding is grown until it reaches back and comfortably
+       covers the piece too, making the label (not the piece silhouette)
+       the real interactive surface. */
+    .nav-item {
+        padding: 5rem;
+    }
+}
+
 .nav-label {
     font-family: "Space Mono", "Courier New", monospace;
     font-size: clamp(0.85rem, 1.6vw, 1.15rem);
