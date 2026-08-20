@@ -81,6 +81,25 @@
         return offsets;
     }
 
+    const PIECE_HIT_STROKE = 50; // must match .piece { stroke-width } in landing.css
+
+    // getBoundingClientRect() on a piece includes the invisible stroke added
+    // for a bigger mobile touch target — for the HUD (tracking box + connector
+    // line) that inflated rect reads wrong, so this insets it back out to the
+    // piece's actual visible silhouette.
+    function pieceVisualRect(piece) {
+        const rect = piece.getBoundingClientRect();
+        const inset = (PIECE_HIT_STROKE / getSvgScaleFactor()) * gsap.getProperty(piece, "scale");
+        return {
+            left: rect.left + inset,
+            top: rect.top + inset,
+            right: rect.right - inset,
+            bottom: rect.bottom - inset,
+            width: Math.max(0, rect.width - inset * 2),
+            height: Math.max(0, rect.height - inset * 2)
+        };
+    }
+
     // Converts a desired on-screen offset (real px, from the logo's center)
     // into the gsap x/y that actually produces it for this piece.
     function pieceOffset(key, desiredX, desiredY, restOffsets, k) {
@@ -221,7 +240,7 @@
             const nav = document.querySelector(config.nav);
             const label = nav.querySelector(".nav-label");
 
-            const box = trackingRect(piece.getBoundingClientRect());
+            const box = trackingRect(pieceVisualRect(piece));
             const labelRect = label.getBoundingClientRect();
             const labelBox = {
                 left: labelRect.left - LABEL_GAP,
@@ -252,7 +271,7 @@
         trackingBoxes.forEach((box) => {
             const key = box.dataset.fragment;
             const piece = document.querySelector(fragmentMap[key].piece);
-            const { left, top, right, bottom } = trackingRect(piece.getBoundingClientRect());
+            const { left, top, right, bottom } = trackingRect(pieceVisualRect(piece));
 
             box.setAttribute("x", left);
             box.setAttribute("y", top);
