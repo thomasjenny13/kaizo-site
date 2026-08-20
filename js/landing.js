@@ -435,38 +435,53 @@
         if (isOpen) return;
         isOpen = true;
 
-        const { pieces: pieceTargets, labels: labelTargets } = getTargets();
-
         gsap.set(landing, { backgroundColor: "#fff" });
         gsap.set("body", { backgroundColor: "#fff" });
         gsap.set(logoSvg, { scale: 1.06 });
-        gsap.set(piecesGroup, { opacity: 1 });
         gsap.set(logoGroup, { opacity: 0 });
         landing.classList.add("is-open");
-
-        Object.entries(pieceTargets).forEach(([key, target]) => {
-            gsap.set(`#piece-${key}`, {
-                x: target.x,
-                y: target.y,
-                rotation: target.rotation,
-                scale: target.scale
-            });
-        });
-
-        Object.entries(labelTargets).forEach(([key, target]) => {
-            gsap.set(fragmentMap[key].nav, { x: target.x, y: target.y });
-        });
-
         gsap.set(hero, { opacity: 1, y: 0 });
         gsap.set(brandMark, { opacity: 1, y: 0 });
-        gsap.set(navItems, { opacity: 1 });
         gsap.set(connectors, { opacity: 1 });
 
-        connectorsActive = true;
-        updateOverlay();
-        gsap.ticker.add(updateOverlay);
-        startFloating();
-        scheduleHeroOverlapChecks();
+        // Positions depend on the hero text's real (post-web-font) size —
+        // computing them right on "load" (before Newsreader has necessarily
+        // finished downloading) placed pieces/labels off the fallback-font
+        // measurements, and letting a later repositionOpen() patch it up
+        // raced against the floating idle animation this same function was
+        // about to start, leaving labels stuck at the wrong spot. Settling
+        // this in one pass, after fonts are actually ready, avoids both.
+        const settle = () => {
+            const { pieces: pieceTargets, labels: labelTargets } = getTargets();
+
+            Object.entries(pieceTargets).forEach(([key, target]) => {
+                gsap.set(`#piece-${key}`, {
+                    x: target.x,
+                    y: target.y,
+                    rotation: target.rotation,
+                    scale: target.scale
+                });
+            });
+
+            Object.entries(labelTargets).forEach(([key, target]) => {
+                gsap.set(fragmentMap[key].nav, { x: target.x, y: target.y });
+            });
+
+            gsap.set(piecesGroup, { opacity: 1 });
+            gsap.set(navItems, { opacity: 1 });
+
+            connectorsActive = true;
+            updateOverlay();
+            gsap.ticker.add(updateOverlay);
+            startFloating();
+            scheduleHeroOverlapChecks();
+        };
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(settle);
+        } else {
+            settle();
+        }
     }
 
     // Recomputes and re-animates pieces/labels to their target for the
