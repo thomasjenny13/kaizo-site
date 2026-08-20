@@ -180,6 +180,22 @@ body {
     border: 1px dashed #ddd;
 }
 
+.wheel-dots {
+    display: none;
+}
+
+.wheel-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: rgba(212, 18, 34, 0.25);
+    transition: background-color 0.25s ease;
+}
+
+.wheel-dot.is-active {
+    background: var(--red);
+}
+
 @keyframes jackpot-pulse {
     0% { box-shadow: 0 0 0 0 rgba(212, 18, 34, 0.55); }
     70% { box-shadow: 0 0 0 2.5rem rgba(212, 18, 34, 0); }
@@ -222,24 +238,25 @@ body {
        gap between columns was already fighting. The wheel's own touch
        handler only claims vertical drags (see the inline script), so a
        horizontal swipe reaches this native scroll-snap untouched. */
+    /* A sliver of the next reel peeking in at the edge (via the 6% side
+       padding + each column being 88% wide, not 100%) is what actually
+       tips people off that there's a second page to swipe to — a dot
+       indicator alone is easy to miss, this you see without even moving. */
     .wheel-columns {
         flex-wrap: nowrap;
         gap: 0;
+        padding: 0 6%;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
     }
 
     .wheel-column {
-        flex: 0 0 100%;
+        flex: 0 0 88%;
         scroll-snap-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
-    }
-
-    .wheel-index {
-        text-align: center;
     }
 
     .wheel {
@@ -247,6 +264,20 @@ body {
         --tile-radius: 15rem;
         height: 22rem;
         perspective: 1300px;
+    }
+
+    /* The 7/7 jackpot only makes sense when both reels are visible at once
+       to see them line up — on mobile, where it's one reel at a time, drop
+       the easter egg tiles entirely rather than leave a pointless gag. */
+    .wheel-tile[data-project="seven"] {
+        display: none;
+    }
+
+    .wheel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-top: 1.5rem;
     }
 }
 

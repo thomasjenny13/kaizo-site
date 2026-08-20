@@ -92,6 +92,11 @@
                 </div>
             </div>
         </div>
+
+        <div class="wheel-dots" aria-hidden="true">
+            <span class="wheel-dot is-active"></span>
+            <span class="wheel-dot"></span>
+        </div>
     </main>
 
     <a class="back-link" href="index.html?open=1">← retour</a>
@@ -108,6 +113,7 @@
             var jackpotArmed = true;
 
             function checkJackpot() {
+                if (window.innerWidth < 640) return; // seven tiles are hidden on mobile — nothing to line up
                 if (centerState.size < wheelEls.length) return;
                 var tiles = [];
                 var allSeven = true;
@@ -367,6 +373,19 @@
 
                 apply();
             });
+
+            // Mobile pagination dots — reflect whichever reel is currently
+            // centered in the horizontal swipe.
+            var track = document.querySelector(".wheel-columns");
+            var dots = document.querySelectorAll(".wheel-dot");
+            if (track && dots.length) {
+                track.addEventListener("scroll", function () {
+                    var index = Math.round(track.scrollLeft / track.clientWidth);
+                    dots.forEach(function (dot, i) {
+                        dot.classList.toggle("is-active", i === index);
+                    });
+                }, { passive: true });
+            }
         })();
     </script>
 </body>
