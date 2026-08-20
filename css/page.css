@@ -180,6 +180,10 @@ body {
     border: 1px dashed #ddd;
 }
 
+.wheel-title-mobile {
+    display: none;
+}
+
 .wheel-dots {
     display: none;
 }
@@ -259,6 +263,23 @@ body {
         align-items: center;
     }
 
+    /* The per-reel title used to live inside the (vertically centered)
+       column, so it drifted down with the wheel instead of reading as a
+       page title. One shared, fixed title up near the KAIZO mark instead —
+       its text is kept in sync with whichever reel is active (see the
+       inline script's scroll listener). */
+    .wheel-index {
+        display: none;
+    }
+
+    .wheel-title-mobile {
+        display: block;
+        position: fixed;
+        top: clamp(4.5rem, 13vh, 5.5rem);
+        left: clamp(1.2rem, 3.5vw, 2rem);
+        margin: 0;
+    }
+
     .wheel {
         --tile-size: 11rem;
         --tile-radius: 15rem;
@@ -275,9 +296,10 @@ body {
 
     .wheel-dots {
         display: flex;
-        justify-content: center;
-        gap: 0.6rem;
-        margin-top: 1.5rem;
+        position: fixed;
+        top: clamp(1.2rem, 3.5vh, 2rem);
+        right: clamp(1.2rem, 3.5vw, 2rem);
+        gap: 0.5rem;
     }
 }
 

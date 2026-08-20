@@ -93,6 +93,8 @@
             </div>
         </div>
 
+        <p class="wheel-title-mobile">01 — Affiches</p>
+
         <div class="wheel-dots" aria-hidden="true">
             <span class="wheel-dot is-active"></span>
             <span class="wheel-dot"></span>
@@ -374,16 +376,21 @@
                 apply();
             });
 
-            // Mobile pagination dots — reflect whichever reel is currently
-            // centered in the horizontal swipe.
+            // Mobile pagination dots + fixed title — reflect whichever reel
+            // is currently centered in the horizontal swipe.
             var track = document.querySelector(".wheel-columns");
             var dots = document.querySelectorAll(".wheel-dot");
+            var titles = document.querySelectorAll(".wheel-index");
+            var mobileTitle = document.querySelector(".wheel-title-mobile");
             if (track && dots.length) {
                 track.addEventListener("scroll", function () {
                     var index = Math.round(track.scrollLeft / track.clientWidth);
                     dots.forEach(function (dot, i) {
                         dot.classList.toggle("is-active", i === index);
                     });
+                    if (mobileTitle && titles[index]) {
+                        mobileTitle.textContent = titles[index].textContent;
+                    }
                 }, { passive: true });
             }
         })();
