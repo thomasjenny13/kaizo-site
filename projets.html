@@ -315,17 +315,42 @@
                     scheduleSnap();
                 }, { passive: false });
 
+                var touchX = null;
                 var touchY = null;
+                var touchAxis = null; // "vertical" rotates the wheel, "horizontal" is left for the page to swipe between reels
                 hitArea.addEventListener("touchstart", function (e) {
+                    touchX = e.touches[0].clientX;
                     touchY = e.touches[0].clientY;
+                    touchAxis = null;
                     stopSnap();
                     clearTimeout(snapTimeout);
                     target = progress;
                 }, { passive: true });
                 hitArea.addEventListener("touchmove", function (e) {
                     if (touchY === null) return;
-                    var dy = touchY - e.touches[0].clientY;
-                    touchY = e.touches[0].clientY;
+                    var x = e.touches[0].clientX;
+                    var y = e.touches[0].clientY;
+                    var dx = touchX - x;
+                    var dy = touchY - y;
+
+                    // Decide once per gesture, on the first move that's
+                    // clearly one direction or the other, so a horizontal
+                    // swipe (switch reel) and a vertical one (spin this
+                    // reel) never fight each other mid-gesture.
+                    if (touchAxis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+                        touchAxis = Math.abs(dy) > Math.abs(dx) ? "vertical" : "horizontal";
+                    }
+                    touchX = x;
+                    touchY = y;
+
+                    // Stay hands-off until the axis is actually decided (lets
+                    // the page's native horizontal scroll-snap take over for
+                    // horizontal swipes) — calling preventDefault too early,
+                    // before we know the direction, would suppress that
+                    // native scroll for the rest of the gesture even if it
+                    // turns out to be horizontal.
+                    if (touchAxis !== "vertical") return;
+
                     target += dy * 0.3;
                     if (mode !== "follow") {
                         stopSnap();
@@ -334,7 +359,9 @@
                     e.preventDefault();
                 }, { passive: false });
                 hitArea.addEventListener("touchend", function () {
+                    touchX = null;
                     touchY = null;
+                    touchAxis = null;
                     scheduleSnap();
                 });
 

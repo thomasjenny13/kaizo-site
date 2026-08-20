@@ -216,16 +216,23 @@ body {
 }
 
 @media (max-width: 640px) {
+    /* One reel at a time, full-width, swiped between horizontally — a phone
+       screen is too narrow for two side-by-side columns, and stacking them
+       vertically ran into the same tiles-overshoot-their-box problem the
+       gap between columns was already fighting. The wheel's own touch
+       handler only claims vertical drags (see the inline script), so a
+       horizontal swipe reaches this native scroll-snap untouched. */
     .wheel-columns {
-        flex-direction: column;
-        /* Tiles swing well past the wheel's own box near the edge of their
-           fade range (perspective foreshortening pushes them out further
-           than the box height suggests) — this gap needs to comfortably
-           clear that overshoot or the two reels visually collide. */
-        gap: 6rem;
+        flex-wrap: nowrap;
+        gap: 0;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
     }
 
     .wheel-column {
+        flex: 0 0 100%;
+        scroll-snap-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -236,10 +243,10 @@ body {
     }
 
     .wheel {
-        --tile-size: 7.5rem;
-        --tile-radius: 10rem;
-        height: 15rem;
-        perspective: 900px;
+        --tile-size: 11rem;
+        --tile-radius: 15rem;
+        height: 22rem;
+        perspective: 1300px;
     }
 }
 
