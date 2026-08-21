@@ -86,7 +86,13 @@ body {
 }
 
 #landing.is-open .piece {
-    pointer-events: auto;
+    /* "auto" resolves to visiblePainted, and Safari doesn't reliably treat
+       a transparent stroke as "painted" for hit-testing the way Firefox
+       does — the invisible stroke padding above (and clicks/hovers near a
+       piece's edge generally) worked in Firefox but not Safari until this
+       was "all" instead, which always counts the stroke geometry
+       regardless of how any engine interprets painted. */
+    pointer-events: all;
     cursor: pointer;
 }
 
