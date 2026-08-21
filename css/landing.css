@@ -146,14 +146,14 @@ body {
 .nav-label {
     display: inline-block;
     font-family: "Space Mono", "Courier New", monospace;
-    font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+    font-size: clamp(0.68rem, 1.2vw, 0.92rem);
     font-weight: 700;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     white-space: nowrap;
     color: #fff;
     background: var(--red);
-    padding: 0.4em 0.65em;
+    padding: 0.3em 0.5em;
 }
 
 /* ── Brand mark ── */
