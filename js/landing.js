@@ -631,9 +631,13 @@
             // (never perfectly stable) settle each time — visible as the
             // labels drifting a little further off with every drag-triggered
             // firing. Only actually run it when the size really changed.
+            // A pure window move can still report the size as off by a
+            // stray pixel or two (subpixel/DPI rounding while it's in
+            // motion) — exact equality let that slip through and re-trigger
+            // anyway, so this needs a small tolerance instead.
             const width = window.innerWidth;
             const height = window.innerHeight;
-            if (width === lastResizeWidth && height === lastResizeHeight) return;
+            if (Math.abs(width - lastResizeWidth) < 4 && Math.abs(height - lastResizeHeight) < 4) return;
             lastResizeWidth = width;
             lastResizeHeight = height;
             repositionOpen();
