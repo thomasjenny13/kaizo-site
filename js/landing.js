@@ -618,13 +618,26 @@
     });
 
     let resizeTimeout;
+    let lastResizeWidth = window.innerWidth;
+    let lastResizeHeight = window.innerHeight;
     window.addEventListener("resize", () => {
         clearTimeout(resizeTimeout);
-        // repositionOpen() resets pieces to rest before remeasuring, so it's
-        // safe to just re-run it on every resize (including the spurious
-        // ones mobile Safari fires when its URL bar collapses/expands) —
-        // a desktop window resized in height alone still needs this too.
-        resizeTimeout = setTimeout(repositionOpen, 150);
+        resizeTimeout = setTimeout(() => {
+            // Some browsers fire "resize" just from moving the window (e.g.
+            // dragging it across displays with a different pixel density),
+            // with the actual CSS size unchanged. repositionOpen() resets
+            // pieces to rest and re-measures + re-animates everything from
+            // scratch, so running it on those too just replayed the same
+            // (never perfectly stable) settle each time — visible as the
+            // labels drifting a little further off with every drag-triggered
+            // firing. Only actually run it when the size really changed.
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            if (width === lastResizeWidth && height === lastResizeHeight) return;
+            lastResizeWidth = width;
+            lastResizeHeight = height;
+            repositionOpen();
+        }, 150);
     });
 
     window.addEventListener("load", () => {
