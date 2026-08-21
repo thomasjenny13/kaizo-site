@@ -98,16 +98,15 @@
         };
 
         // The label rides on the piece itself — same raw on-screen offset
-        // used to place the piece (plus a small fixed downward nudge so it
-        // reads as a caption just below it rather than stamped dead-center)
-        // — never a separate perpendicular-offset formula to fall out of
-        // sync, or go off-screen on its own, on a resize.
-        const labelNudgeY = -15 * pieceScale;
+        // used to place the piece, plus a small nudge tuned per piece (see
+        // the desktop targets below for why it's not one shared constant)
+        // so it overlaps the piece's actual silhouette — never a separate
+        // perpendicular-offset formula to fall out of sync on a resize.
         const labels = {
-            top: { x: -colOffset, y: -rowOffset + labelNudgeY },
-            right: { x: colOffset, y: -rowOffset + labelNudgeY },
-            left: { x: -colOffset, y: rowOffset + labelNudgeY },
-            bottom: { x: colOffset, y: rowOffset + labelNudgeY }
+            top: { x: -colOffset, y: -rowOffset - 15 * pieceScale },
+            right: { x: colOffset, y: -rowOffset - 15 * pieceScale },
+            left: { x: -colOffset, y: rowOffset - 15 * pieceScale },
+            bottom: { x: colOffset, y: rowOffset - 70 * pieceScale }
         };
 
         return { pieces, labels };
@@ -157,11 +156,9 @@
 
         const marginX = Math.min(Math.max(vw * 0.28, heroClearanceX), 460, edgeCapX);
         const marginY = Math.min(Math.max(vh * 0.26, heroClearanceY), 360, edgeCapY);
-        // à propos kept landing on the definition text despite the hero-
-        // clearance math above, so it gets the same treatment as the other
-        // three plus a flat extra push down — simple and predictable rather
-        // than relying on a predicted/measured clearance value.
-        const marginYBottom = Math.min(marginY + 15, edgeCapY);
+        // Symmetric with top now — the flat extra push this used to get
+        // kept getting nudged down to nothing anyway.
+        const marginYBottom = marginY;
 
         // Pieces are transformed inside the SVG's own coordinate space, so
         // their targets need the scale-factor correction to land at the
@@ -174,18 +171,18 @@
         };
 
         // The label rides directly on its piece — same raw on-screen offset
-        // used to place the piece, plus a small fixed downward nudge so it
-        // reads as a caption just below it rather than stamped dead-center
-        // — so it's never somewhere the piece isn't. (The old version placed
-        // labels at their own perpendicular offset out from the piece, which
-        // needed its own set of edge caps and kept breaking on resize — this
-        // can't, since it has no formula of its own left to get wrong.)
-        const labelNudgeY = -15 * pieceScale;
+        // used to place the piece, plus a small fixed nudge so it overlaps
+        // the piece's actual visible silhouette rather than its unrotated
+        // anchor point. Each piece has its own rotation + proportions
+        // (bottom especially — short, wide, rotated — sits differently than
+        // top/left/right), so the nudge is tuned per piece rather than one
+        // shared constant. Never a separate perpendicular-offset formula
+        // with its own edge caps to fall out of sync on a resize, though.
         const labels = {
-            top: { x: 0, y: -marginY + labelNudgeY },
-            bottom: { x: 0, y: marginYBottom + labelNudgeY },
-            left: { x: -marginX, y: labelNudgeY },
-            right: { x: marginX, y: labelNudgeY }
+            top: { x: 0, y: -marginY - 15 * pieceScale },
+            bottom: { x: 0, y: marginYBottom - 40 * pieceScale },
+            left: { x: -marginX, y: -15 * pieceScale },
+            right: { x: marginX, y: -15 * pieceScale }
         };
 
         return { pieces, labels };
