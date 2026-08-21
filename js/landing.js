@@ -97,15 +97,17 @@
             bottom: { ...pieceOffset("bottom", colOffset, rowOffset, restOffsets, k), rotation: 6, scale: pieceScale }
         };
 
-        // The label now rides on the piece itself — same raw on-screen
-        // offset used to place the piece, so it can never end up somewhere
-        // the piece isn't (no separate perpendicular-offset formula to fall
-        // out of sync, or go off-screen on its own, on a resize).
+        // The label rides on the piece itself — same raw on-screen offset
+        // used to place the piece (plus a small fixed downward nudge so it
+        // reads as a caption just below it rather than stamped dead-center)
+        // — never a separate perpendicular-offset formula to fall out of
+        // sync, or go off-screen on its own, on a resize.
+        const labelNudgeY = 40 * pieceScale;
         const labels = {
-            top: { x: -colOffset, y: -rowOffset },
-            right: { x: colOffset, y: -rowOffset },
-            left: { x: -colOffset, y: rowOffset },
-            bottom: { x: colOffset, y: rowOffset }
+            top: { x: -colOffset, y: -rowOffset + labelNudgeY },
+            right: { x: colOffset, y: -rowOffset + labelNudgeY },
+            left: { x: -colOffset, y: rowOffset + labelNudgeY },
+            bottom: { x: colOffset, y: rowOffset + labelNudgeY }
         };
 
         return { pieces, labels };
@@ -172,16 +174,18 @@
         };
 
         // The label rides directly on its piece — same raw on-screen offset
-        // used to place the piece, so it's never somewhere the piece isn't.
-        // (The old version placed labels at their own perpendicular offset
-        // out from the piece, which needed its own set of edge caps and
-        // kept breaking on resize — this can't, since it has no formula of
-        // its own left to get wrong.)
+        // used to place the piece, plus a small fixed downward nudge so it
+        // reads as a caption just below it rather than stamped dead-center
+        // — so it's never somewhere the piece isn't. (The old version placed
+        // labels at their own perpendicular offset out from the piece, which
+        // needed its own set of edge caps and kept breaking on resize — this
+        // can't, since it has no formula of its own left to get wrong.)
+        const labelNudgeY = 40 * pieceScale;
         const labels = {
-            top: { x: 0, y: -marginY },
-            bottom: { x: 0, y: marginYBottom },
-            left: { x: -marginX, y: 0 },
-            right: { x: marginX, y: 0 }
+            top: { x: 0, y: -marginY + labelNudgeY },
+            bottom: { x: 0, y: marginYBottom + labelNudgeY },
+            left: { x: -marginX, y: labelNudgeY },
+            right: { x: marginX, y: labelNudgeY }
         };
 
         return { pieces, labels };
