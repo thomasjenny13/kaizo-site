@@ -8,7 +8,6 @@
     --black: #000;
     --white: #fff;
     --red: #d41222;
-    --label-red: #a3321f;
     --gray: #666;
 }
 
@@ -127,7 +126,7 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
     .nav-item:hover .nav-label {
-        background: #c23e28;
+        background: #ff1a2e;
     }
 }
 
@@ -146,15 +145,15 @@ body {
 
 .nav-label {
     display: inline-block;
-    font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
-    font-size: clamp(1rem, 1.9vw, 1.35rem);
+    font-family: "Space Mono", "Courier New", monospace;
+    font-size: clamp(0.85rem, 1.6vw, 1.15rem);
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     white-space: nowrap;
     color: #fff;
-    background: var(--label-red);
-    padding: 0.55em 1.3em;
+    background: var(--red);
+    padding: 0.4em 0.65em;
 }
 
 /* ── Brand mark ── */
