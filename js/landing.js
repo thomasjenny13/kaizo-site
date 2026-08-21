@@ -152,17 +152,23 @@
 
         // On a narrow phone screen there just isn't 170px to spare on each
         // side, so the piece's own on-screen size and the edge buffer both
-        // scale down with viewport width instead of staying fixed desktop
-        // values.
-        const pieceScale = Math.min(1.55, Math.max(1.05, vw / 480));
+        // scale down with viewport width — and, since a resized desktop
+        // window can end up short rather than narrow, with height too, or
+        // the pieces could stay full-size in a window with no vertical room
+        // left for them at all.
+        const pieceScale = Math.min(1.55, Math.max(0.65, Math.min(vw / 480, vh / 420)));
 
         // Visual (on-screen px) positions — used for the label math below.
         // The buffer keeps the piece's own footprint (scaled by pieceScale)
         // plus its label clear of the viewport edge — this is a hard
         // ceiling, pieces must never be pushed past it or they clip off-screen.
-        const buffer = Math.min(170, Math.max(60, vw * 0.13));
-        const edgeCapX = vw / 2 - buffer;
-        const edgeCapY = vh / 2 - buffer;
+        // Floored well above 0: on a short/narrow-enough window vh/2 or vw/2
+        // minus buffer can otherwise go negative, which flips marginX/Y
+        // negative too and throws pieces to the wrong side of center instead
+        // of just packing them in tighter.
+        const buffer = Math.max(Math.min(170, Math.max(50, Math.min(vw, vh) * 0.13)), 95 * pieceScale);
+        const edgeCapX = Math.max(80, vw / 2 - buffer);
+        const edgeCapY = Math.max(60, vh / 2 - buffer);
 
         // Within that ceiling, try to also clear the hero text block so the
         // right/bottom piece + label don't land on top of it on narrower
@@ -203,12 +209,17 @@
         // the piece's own outward direction. Same flat-extra treatment as
         // "à propos" below: "fragile" is a tall sliver that the predicted
         // offset kept undershooting, so it gets a fixed, generous add-on
-        // instead of a computed one.
+        // instead of a computed one. labelOffset itself is only ever sized
+        // off vw, so top/bottom's use of it (perpendicular, along X) is
+        // capped against edgeCapX and left/right's (along Y) against
+        // edgeCapY — on a short window the two caps can differ a lot, and
+        // without this a label perpendicular offset sized for width alone
+        // pushes left/right's label off the top or bottom edge.
         const labels = {
-            top: { x: labelOffset, y: -marginY },
-            right: { x: marginX, y: labelOffset },
-            bottom: { x: -(labelOffset + 50), y: marginYBottom },
-            left: { x: -marginX, y: -(labelOffset + 50) }
+            top: { x: Math.min(labelOffset, edgeCapX), y: -marginY },
+            right: { x: marginX, y: Math.min(labelOffset, edgeCapY) },
+            bottom: { x: -Math.min(labelOffset + 50, edgeCapX), y: marginYBottom },
+            left: { x: -marginX, y: -Math.min(labelOffset + 50, edgeCapY) }
         };
 
         return { pieces, labels };
@@ -333,7 +344,7 @@
         Object.entries(fragmentMap).forEach(([key, config]) => {
             const piece = document.querySelector(config.piece);
             const nav = document.querySelector(config.nav);
-            const box = trackingRect(piece.getBoundingClientRect());
+            const box = trackingRect(pieceVisualRect(piece));
 
             const overlapsX = box.left < guard.right && box.right > guard.left;
             const overlapsY = box.top < guard.bottom && box.bottom > guard.top;
@@ -352,17 +363,17 @@
             // as jittery motion) and the float drags the piece back through
             // the old, overlapping position on its next cycle. Kill it,
             // apply the correction as the new resting position, then
-            // restart the float from there.
+            // restart the float from there — once BOTH the piece's and the
+            // nav's correction tween have actually finished (an onComplete
+            // on just the piece's raced the nav's own still-running one,
+            // which floatPiece()'s relative += tweens could cut off before
+            // it landed, leaving the nav adrift from a not-quite-corrected
+            // spot).
             gsap.killTweensOf(piece);
             gsap.killTweensOf(nav);
-            gsap.to(piece, {
-                x: `+=${dx}`,
-                y: `+=${dy}`,
-                duration: 0.4,
-                ease: "power2.out",
-                onComplete: () => floatPiece(key)
-            });
+            gsap.to(piece, { x: `+=${dx}`, y: `+=${dy}`, duration: 0.4, ease: "power2.out" });
             gsap.to(nav, { x: `+=${dx}`, y: `+=${dy}`, duration: 0.4, ease: "power2.out" });
+            gsap.delayedCall(0.4, () => floatPiece(key));
         });
     }
 
@@ -510,8 +521,7 @@
                 rotation: target.rotation,
                 scale: target.scale,
                 duration: 0.5,
-                ease: "power2.out",
-                onComplete: () => floatPiece(key)
+                ease: "power2.out"
             });
         });
 
@@ -524,6 +534,13 @@
             });
         });
 
+        // Restarting float per-piece as each one's own tween completed used
+        // to race the label's separate move tween landing at roughly the
+        // same time — floatPiece() touches both, so whichever finished
+        // first could get overwritten mid-flight by the other, leaving it
+        // adrift from a stale not-quite-final position. One clean restart
+        // once BOTH have actually settled avoids that.
+        gsap.delayedCall(0.5, startFloating);
         gsap.delayedCall(0.55, scheduleHeroOverlapChecks);
     }
 
@@ -706,21 +723,14 @@
     });
 
     let resizeTimeout;
-    let lastResizeWidth = window.innerWidth;
     window.addEventListener("resize", () => {
         if (connectorsActive) updateOverlay();
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            // Mobile Safari fires "resize" when its URL bar collapses/expands
-            // on scroll/tap — that only changes innerHeight, not innerWidth.
-            // Re-laying-out (and re-animating) pieces for that silently moves
-            // them right after the user opened the view, so taps miss. A
-            // real resize/orientation change always changes the width too.
-            const width = window.innerWidth;
-            if (width === lastResizeWidth) return;
-            lastResizeWidth = width;
-            repositionOpen();
-        }, 150);
+        // repositionOpen() resets pieces to rest before remeasuring, so it's
+        // safe to just re-run it on every resize (including the spurious
+        // ones mobile Safari fires when its URL bar collapses/expands) —
+        // a desktop window resized in height alone still needs this too.
+        resizeTimeout = setTimeout(repositionOpen, 150);
     });
 
     window.addEventListener("load", () => {
