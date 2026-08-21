@@ -180,7 +180,7 @@
         // with its own edge caps to fall out of sync on a resize, though.
         const labels = {
             top: { x: 0, y: -marginY - 15 * pieceScale },
-            bottom: { x: 0, y: marginYBottom - 40 * pieceScale },
+            bottom: { x: 0, y: marginYBottom - 58 * pieceScale },
             left: { x: -marginX, y: -15 * pieceScale },
             right: { x: marginX, y: -15 * pieceScale }
         };
