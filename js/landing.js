@@ -5,39 +5,8 @@
     const piecesGroup = document.getElementById("pieces");
     const pieces = document.querySelectorAll(".piece");
     const navItems = document.querySelectorAll(".nav-item");
-    const connectors = document.querySelector(".connectors");
-    const connectorLines = document.querySelectorAll(".connector");
-    const trackingBoxes = document.querySelectorAll(".tracking-box");
     const hero = document.querySelector(".hero");
     const brandMark = document.querySelector(".brand-mark");
-
-    const TRACKING_PADDING = 16;
-    const LABEL_GAP = 10;
-
-    function trackingRect(pieceRect) {
-        return {
-            left: pieceRect.left - TRACKING_PADDING,
-            top: pieceRect.top - TRACKING_PADDING,
-            right: pieceRect.right + TRACKING_PADDING,
-            bottom: pieceRect.bottom + TRACKING_PADDING
-        };
-    }
-
-    // Point where the segment from the rect's center toward (targetX, targetY)
-    // crosses the rect's boundary.
-    function rectEdgePoint(rect, targetX, targetY) {
-        const cx = (rect.left + rect.right) / 2;
-        const cy = (rect.top + rect.bottom) / 2;
-        const halfW = (rect.right - rect.left) / 2;
-        const halfH = (rect.bottom - rect.top) / 2;
-        const dx = targetX - cx;
-        const dy = targetY - cy;
-        if (dx === 0 && dy === 0) return { x: cx, y: cy };
-        const tx = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
-        const ty = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
-        const t = Math.min(tx, ty);
-        return { x: cx + dx * t, y: cy + dy * t };
-    }
 
     const fragmentMap = {
         top: { piece: "#piece-top", nav: ".nav-top" },
@@ -47,7 +16,6 @@
     };
 
     let isOpen = false;
-    let connectorsActive = false;
 
     // Pieces live inside #landing-logo's viewBox (1080 user units mapped onto
     // a ~140-200px element), so a "px" translate on them is scaled down by
@@ -121,7 +89,6 @@
         const colBuffer = 80;
         const rowOffset = Math.min(vh * 0.28, vh / 2 - rowBuffer);
         const colOffset = Math.min(vw * 0.2, vw / 2 - colBuffer);
-        const labelGap = 68;
 
         const pieces = {
             top: { ...pieceOffset("top", -colOffset, -rowOffset, restOffsets, k), rotation: -6, scale: pieceScale },
@@ -130,11 +97,15 @@
             bottom: { ...pieceOffset("bottom", colOffset, rowOffset, restOffsets, k), rotation: 6, scale: pieceScale }
         };
 
+        // The label now rides on the piece itself — same raw on-screen
+        // offset used to place the piece, so it can never end up somewhere
+        // the piece isn't (no separate perpendicular-offset formula to fall
+        // out of sync, or go off-screen on its own, on a resize).
         const labels = {
-            top: { x: -colOffset, y: -rowOffset + labelGap },
-            right: { x: colOffset, y: -rowOffset + labelGap },
-            left: { x: -colOffset, y: rowOffset - labelGap },
-            bottom: { x: colOffset, y: rowOffset - labelGap }
+            top: { x: -colOffset, y: -rowOffset },
+            right: { x: colOffset, y: -rowOffset },
+            left: { x: -colOffset, y: rowOffset },
+            bottom: { x: colOffset, y: rowOffset }
         };
 
         return { pieces, labels };
@@ -173,15 +144,14 @@
         // Within that ceiling, try to also clear the hero text block so the
         // right/bottom piece + label don't land on top of it on narrower
         // viewports. The clearance has to account for the piece's own
-        // footprint too — marginX/Y position its center, but its edge (plus
-        // the tracking-box padding) reaches further toward the hero than
-        // that center point.
+        // footprint too — marginX/Y position its center, but its edge
+        // reaches further toward the hero than that center point.
         const heroRect = hero.getBoundingClientRect();
         const gap = 40;
         const pieceHalfW = Math.max(restOffsets.left.width, restOffsets.right.width) / 2 * pieceScale;
         const pieceHalfH = Math.max(restOffsets.top.height, restOffsets.bottom.height) / 2 * pieceScale;
-        const heroClearanceX = heroRect.width / 2 + gap + pieceHalfW + TRACKING_PADDING;
-        const heroClearanceY = heroRect.height / 2 + gap + pieceHalfH + TRACKING_PADDING;
+        const heroClearanceX = heroRect.width / 2 + gap + pieceHalfW;
+        const heroClearanceY = heroRect.height / 2 + gap + pieceHalfH;
 
         const marginX = Math.min(Math.max(vw * 0.28, heroClearanceX), 460, edgeCapX);
         const marginY = Math.min(Math.max(vh * 0.26, heroClearanceY), 360, edgeCapY);
@@ -190,10 +160,6 @@
         // three plus a flat extra push down — simple and predictable rather
         // than relying on a predicted/measured clearance value.
         const marginYBottom = Math.min(marginY + 200, edgeCapY);
-
-        // Same perpendicular offset for every label, so the four read as one
-        // consistent system instead of four separately-tuned distances.
-        const labelOffset = Math.min(Math.max(vw * 0.1, 110), 220);
 
         // Pieces are transformed inside the SVG's own coordinate space, so
         // their targets need the scale-factor correction to land at the
@@ -205,21 +171,17 @@
             right: { ...pieceOffset("right", marginX, 0, restOffsets, k), rotation: 14, scale: pieceScale }
         };
 
-        // Labels are plain HTML, positioned in real px — 90° clockwise from
-        // the piece's own outward direction. Same flat-extra treatment as
-        // "à propos" below: "fragile" is a tall sliver that the predicted
-        // offset kept undershooting, so it gets a fixed, generous add-on
-        // instead of a computed one. labelOffset itself is only ever sized
-        // off vw, so top/bottom's use of it (perpendicular, along X) is
-        // capped against edgeCapX and left/right's (along Y) against
-        // edgeCapY — on a short window the two caps can differ a lot, and
-        // without this a label perpendicular offset sized for width alone
-        // pushes left/right's label off the top or bottom edge.
+        // The label rides directly on its piece — same raw on-screen offset
+        // used to place the piece, so it's never somewhere the piece isn't.
+        // (The old version placed labels at their own perpendicular offset
+        // out from the piece, which needed its own set of edge caps and
+        // kept breaking on resize — this can't, since it has no formula of
+        // its own left to get wrong.)
         const labels = {
-            top: { x: Math.min(labelOffset, edgeCapX), y: -marginY },
-            right: { x: marginX, y: Math.min(labelOffset, edgeCapY) },
-            bottom: { x: -Math.min(labelOffset + 50, edgeCapX), y: marginYBottom },
-            left: { x: -marginX, y: -Math.min(labelOffset + 50, edgeCapY) }
+            top: { x: 0, y: -marginY },
+            bottom: { x: 0, y: marginYBottom },
+            left: { x: -marginX, y: 0 },
+            right: { x: marginX, y: 0 }
         };
 
         return { pieces, labels };
@@ -235,65 +197,7 @@
         gsap.set(navItems, { opacity: 0, x: 0, y: 0, xPercent: -50, yPercent: -50 });
         gsap.set(hero, { opacity: 0, x: 0, y: 16, xPercent: -50, yPercent: -50 });
         gsap.set(brandMark, { opacity: 0, y: -10 });
-        gsap.set(connectors, { opacity: 0 });
         landing.classList.remove("is-open");
-        connectorsActive = false;
-        gsap.ticker.remove(updateOverlay);
-    }
-
-    function updateConnectors() {
-        if (!connectorsActive) return;
-
-        connectorLines.forEach((line) => {
-            const key = line.dataset.fragment;
-            const config = fragmentMap[key];
-            const piece = document.querySelector(config.piece);
-            const nav = document.querySelector(config.nav);
-            const label = nav.querySelector(".nav-label");
-
-            const box = trackingRect(pieceVisualRect(piece));
-            const labelRect = label.getBoundingClientRect();
-            const labelBox = {
-                left: labelRect.left - LABEL_GAP,
-                top: labelRect.top - LABEL_GAP,
-                right: labelRect.right + LABEL_GAP,
-                bottom: labelRect.bottom + LABEL_GAP
-            };
-
-            const pieceCx = (box.left + box.right) / 2;
-            const pieceCy = (box.top + box.bottom) / 2;
-            const { x: x1, y: y1 } = rectEdgePoint(labelBox, pieceCx, pieceCy);
-            const { x: x2, y: y2 } = rectEdgePoint(box, x1, y1);
-
-            line.setAttribute("x1", x1);
-            line.setAttribute("y1", y1);
-            line.setAttribute("x2", x2);
-            line.setAttribute("y2", y2);
-
-            const length = Math.hypot(x2 - x1, y2 - y1);
-            line.style.strokeDasharray = length;
-            line.style.strokeDashoffset = "0";
-        });
-    }
-
-    function updateTrackingBoxes() {
-        if (!connectorsActive) return;
-
-        trackingBoxes.forEach((box) => {
-            const key = box.dataset.fragment;
-            const piece = document.querySelector(fragmentMap[key].piece);
-            const { left, top, right, bottom } = trackingRect(pieceVisualRect(piece));
-
-            box.setAttribute("x", left);
-            box.setAttribute("y", top);
-            box.setAttribute("width", right - left);
-            box.setAttribute("height", bottom - top);
-        });
-    }
-
-    function updateOverlay() {
-        updateConnectors();
-        updateTrackingBoxes();
     }
 
     // x, y and rotation each run on their own out-of-sync period, so the
@@ -344,7 +248,7 @@
         Object.entries(fragmentMap).forEach(([key, config]) => {
             const piece = document.querySelector(config.piece);
             const nav = document.querySelector(config.nav);
-            const box = trackingRect(pieceVisualRect(piece));
+            const box = pieceVisualRect(piece);
 
             const overlapsX = box.left < guard.right && box.right > guard.left;
             const overlapsY = box.top < guard.bottom && box.bottom > guard.top;
@@ -431,12 +335,6 @@
         tl.to(hero, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 1.4)
             .to(brandMark, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 1.4)
             .to(navItems, { opacity: 1, stagger: 0.08, duration: 0.6, ease: "power2.out" }, 1.5)
-            .to(connectors, { opacity: 1, duration: 0.8 }, 1.6)
-            .call(() => {
-                connectorsActive = true;
-                updateOverlay();
-                gsap.ticker.add(updateOverlay);
-            }, null, 1.6)
             .call(scheduleHeroOverlapChecks, null, 2.7);
     }
 
@@ -453,7 +351,6 @@
         landing.classList.add("is-open");
         gsap.set(hero, { opacity: 1, y: 0 });
         gsap.set(brandMark, { opacity: 1, y: 0 });
-        gsap.set(connectors, { opacity: 1 });
 
         // Positions depend on the hero text's real (post-web-font) size —
         // computing them right on "load" (before Newsreader has necessarily
@@ -481,9 +378,6 @@
             gsap.set(piecesGroup, { opacity: 1 });
             gsap.set(navItems, { opacity: 1 });
 
-            connectorsActive = true;
-            updateOverlay();
-            gsap.ticker.add(updateOverlay);
             startFloating();
             scheduleHeroOverlapChecks();
         };
@@ -724,7 +618,6 @@
 
     let resizeTimeout;
     window.addEventListener("resize", () => {
-        if (connectorsActive) updateOverlay();
         clearTimeout(resizeTimeout);
         // repositionOpen() resets pieces to rest before remeasuring, so it's
         // safe to just re-run it on every resize (including the spurious

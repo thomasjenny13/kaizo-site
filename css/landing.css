@@ -36,35 +36,6 @@ body {
     background: var(--black);
 }
 
-/* ── Connectors ── */
-
-.connectors {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 8;
-    opacity: 0;
-}
-
-.connector {
-    stroke: var(--red);
-    stroke-width: 1;
-    opacity: 0.45;
-    vector-effect: non-scaling-stroke;
-}
-
-/* ── Tracking boxes ── */
-
-.tracking-box {
-    fill: none;
-    stroke: var(--red);
-    stroke-width: 1;
-    opacity: 0.35;
-    vector-effect: non-scaling-stroke;
-}
-
 /* ── Logo SVG ── */
 
 #landing-logo {
@@ -179,6 +150,14 @@ body {
     letter-spacing: 0.24em;
     text-transform: uppercase;
     white-space: nowrap;
+    /* The label now sits directly on its piece (black, or red on hover)
+       instead of out on its own against the white page — this white halo
+       keeps the red text legible either way, and does nothing visible
+       wherever it still falls on the white background. */
+    text-shadow:
+        0 0 6px #fff,
+        0 0 6px #fff,
+        0 0 3px #fff;
 }
 
 /* ── Brand mark ── */
