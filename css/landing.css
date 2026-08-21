@@ -125,8 +125,8 @@ body {
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .nav-item:hover {
-        color: #ff1a2e;
+    .nav-item:hover .nav-label {
+        background: #ff1a2e;
     }
 }
 
@@ -144,20 +144,16 @@ body {
 }
 
 .nav-label {
+    display: inline-block;
     font-family: "Space Mono", "Courier New", monospace;
     font-size: clamp(0.85rem, 1.6vw, 1.15rem);
-    font-weight: 400;
+    font-weight: 700;
     letter-spacing: 0.24em;
     text-transform: uppercase;
     white-space: nowrap;
-    /* The label now sits directly on its piece (black, or red on hover)
-       instead of out on its own against the white page — this white halo
-       keeps the red text legible either way, and does nothing visible
-       wherever it still falls on the white background. */
-    text-shadow:
-        0 0 6px #fff,
-        0 0 6px #fff,
-        0 0 3px #fff;
+    color: #fff;
+    background: var(--red);
+    padding: 0.4em 0.65em;
 }
 
 /* ── Brand mark ── */
