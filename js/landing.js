@@ -128,7 +128,7 @@
         // window can end up short rather than narrow, with height too, or
         // the pieces could stay full-size in a window with no vertical room
         // left for them at all.
-        const pieceScale = Math.min(1.55, Math.max(0.65, Math.min(vw / 480, vh / 420)));
+        const pieceScale = Math.min(2.4, Math.max(0.65, Math.min(vw / 480, vh / 420)));
 
         // Visual (on-screen px) positions — used for the label math below.
         // The buffer keeps the piece's own footprint (scaled by pieceScale)
