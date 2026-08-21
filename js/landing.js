@@ -68,6 +68,26 @@
         };
     }
 
+    // A flat, per-piece "nudge the label down a bit" constant (see the
+    // labels in getTargets()) is only ever an approximation of how far a
+    // *rotated* piece's visual bounding box actually sits from its own
+    // unrotated anchor point — close at the pieceScale it was eyeballed
+    // at, increasingly off the further vw/vh/pieceScale wander from that
+    // (a big screen threw it noticeably off). Measuring the piece's real
+    // rendered position and placing the label from that is exact at any
+    // size, no per-shape tuning to keep chasing.
+    function snapLabelToPiece(key, extraDown) {
+        const piece = document.querySelector(fragmentMap[key].piece);
+        const rect = pieceVisualRect(piece);
+        const centerRect = landing.getBoundingClientRect();
+        const centerX = centerRect.left + centerRect.width / 2;
+        const centerY = centerRect.top + centerRect.height / 2;
+        gsap.set(fragmentMap[key].nav, {
+            x: (rect.left + rect.right) / 2 - centerX,
+            y: (rect.top + rect.bottom) / 2 - centerY + (extraDown || 0)
+        });
+    }
+
     // Converts a desired on-screen offset (real px, from the logo's center)
     // into the gsap x/y that actually produces it for this piece.
     function pieceOffset(key, desiredX, desiredY, restOffsets, k) {
@@ -317,10 +337,9 @@
                 rotation: target.rotation,
                 scale: target.scale,
                 duration: 2.1,
-                ease: "expo.out",
-                // starting the idle float before this tween lands would
-                // fight it for the same x/y properties (see floatPiece)
-                onComplete: () => floatPiece(key)
+                ease: "expo.out"
+                // Floating starts below, after the label correction — see
+                // the note there for why not from this tween's onComplete.
             }, 0.55);
         });
 
@@ -331,6 +350,20 @@
                 duration: 2.1,
                 ease: "expo.out"
             }, 0.55);
+        });
+
+        // The label tween above only aims for getTargets()'s analytical
+        // approximation of where the piece will land — this corrects it to
+        // the piece's real measured position. Doing it from the piece
+        // tween's own onComplete used to race the label's own tween (both
+        // finish at the same timeline tick, so whichever's final-frame
+        // write landed second silently won it) — a separate call scheduled
+        // a beat later runs in its own tick, strictly after both are done.
+        Object.keys(pieceTargets).forEach((key) => {
+            tl.call(() => {
+                snapLabelToPiece(key);
+                floatPiece(key);
+            }, null, 0.55 + 2.1 + 0.05);
         });
 
         tl.to(hero, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 1.4)
@@ -361,7 +394,7 @@
         // about to start, leaving labels stuck at the wrong spot. Settling
         // this in one pass, after fonts are actually ready, avoids both.
         const settle = () => {
-            const { pieces: pieceTargets, labels: labelTargets } = getTargets();
+            const { pieces: pieceTargets } = getTargets();
 
             Object.entries(pieceTargets).forEach(([key, target]) => {
                 gsap.set(`#piece-${key}`, {
@@ -372,9 +405,10 @@
                 });
             });
 
-            Object.entries(labelTargets).forEach(([key, target]) => {
-                gsap.set(fragmentMap[key].nav, { x: target.x, y: target.y });
-            });
+            // Pieces are already in their final spot (gsap.set, not
+            // animated) — snap labels straight to the real measured
+            // position rather than the analytical labelTargets guess.
+            Object.keys(pieceTargets).forEach((key) => snapLabelToPiece(key));
 
             gsap.set(piecesGroup, { opacity: 1 });
             gsap.set(navItems, { opacity: 1 });
@@ -433,10 +467,17 @@
         // to race the label's separate move tween landing at roughly the
         // same time — floatPiece() touches both, so whichever finished
         // first could get overwritten mid-flight by the other, leaving it
-        // adrift from a stale not-quite-final position. One clean restart
-        // once BOTH have actually settled avoids that.
-        gsap.delayedCall(0.5, startFloating);
-        gsap.delayedCall(0.55, scheduleHeroOverlapChecks);
+        // adrift from a stale not-quite-final position. Snapping labels to
+        // the piece's real measured position (the tween above only aims for
+        // the analytical approximation — see getTargets()) has the same
+        // problem if it runs at the exact instant the tweens complete (0.5),
+        // same tick as their own final-frame write — a beat later runs in
+        // its own tick, strictly after both are actually done.
+        gsap.delayedCall(0.55, () => {
+            Object.keys(pieceTargets).forEach((key) => snapLabelToPiece(key));
+            startFloating();
+        });
+        gsap.delayedCall(0.6, scheduleHeroOverlapChecks);
     }
 
     const SVG_NS = "http://www.w3.org/2000/svg";
