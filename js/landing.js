@@ -102,7 +102,7 @@
         // reads as a caption just below it rather than stamped dead-center)
         // — never a separate perpendicular-offset formula to fall out of
         // sync, or go off-screen on its own, on a resize.
-        const labelNudgeY = 40 * pieceScale;
+        const labelNudgeY = 12 * pieceScale;
         const labels = {
             top: { x: -colOffset, y: -rowOffset + labelNudgeY },
             right: { x: colOffset, y: -rowOffset + labelNudgeY },
@@ -180,7 +180,7 @@
         // labels at their own perpendicular offset out from the piece, which
         // needed its own set of edge caps and kept breaking on resize — this
         // can't, since it has no formula of its own left to get wrong.)
-        const labelNudgeY = 40 * pieceScale;
+        const labelNudgeY = 12 * pieceScale;
         const labels = {
             top: { x: 0, y: -marginY + labelNudgeY },
             bottom: { x: 0, y: marginYBottom + labelNudgeY },
