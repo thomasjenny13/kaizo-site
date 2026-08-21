@@ -158,7 +158,7 @@
         const marginY = Math.min(Math.max(vh * 0.26, heroClearanceY), 360, edgeCapY);
         // Symmetric with top now — the flat extra push this used to get
         // kept getting nudged down to nothing anyway.
-        const marginYBottom = marginY;
+        const marginYBottom = Math.min(marginY + 90, edgeCapY);
 
         // Pieces are transformed inside the SVG's own coordinate space, so
         // their targets need the scale-factor correction to land at the
