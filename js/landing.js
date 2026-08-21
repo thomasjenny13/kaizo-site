@@ -161,7 +161,7 @@
         // clearance math above, so it gets the same treatment as the other
         // three plus a flat extra push down — simple and predictable rather
         // than relying on a predicted/measured clearance value.
-        const marginYBottom = Math.min(marginY + 60, edgeCapY);
+        const marginYBottom = Math.min(marginY + 15, edgeCapY);
 
         // Pieces are transformed inside the SVG's own coordinate space, so
         // their targets need the scale-factor correction to land at the
