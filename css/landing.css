@@ -65,17 +65,31 @@ body {
     overflow: visible;
 }
 
-.piece {
-    fill: var(--black);
-    /* Invisible stroke pads out the real tappable area beyond the piece's
-       visible silhouette — some pieces (fragile especially) are thin
-       slivers that are easy to miss with a finger even though the visual
-       shape itself is unchanged (transparent still counts as "painted"
-       for hit-testing purposes). */
-    stroke: transparent;
-    stroke-width: 50;
+/* Each piece is <g class="piece-unit"><rect class="piece-hit">
+   <path class="piece"></g> (built in landing.js) — the path is purely
+   visual. The rect was meant to be the interactive element (a plain filled
+   rectangle hit-tests unambiguously everywhere, unlike a transparent stroke,
+   which Safari doesn't reliably treat as "painted" the way Firefox does) —
+   but once open, every piece sits transformed way outside the small SVG
+   element's own box, and WebKit simply never hit-tests SVG content past
+   that box, however overflow:visible renders it or pointer-events is set on
+   the content itself. So the rect works in Firefox/Chrome but not Safari;
+   the actual cross-browser interactive surface is the plain-HTML nav-item
+   label (see .nav-item's padding in the nav rules below), which has none
+   of that ceiling. is-hovered here is toggled from JS on the label's own
+   hover, not from the rect — see landing.js. */
+.piece-unit {
     transform-origin: center center;
     transform-box: fill-box;
+}
+
+.piece {
+    fill: var(--black);
+    pointer-events: none;
+}
+
+.piece-hit {
+    fill: transparent;
     pointer-events: none;
     cursor: default;
     -webkit-tap-highlight-color: transparent;
@@ -85,19 +99,17 @@ body {
     pointer-events: none;
 }
 
-#landing.is-open .piece {
-    /* "auto" resolves to visiblePainted, and Safari doesn't reliably treat
-       a transparent stroke as "painted" for hit-testing the way Firefox
-       does — the invisible stroke padding above (and clicks/hovers near a
-       piece's edge generally) worked in Firefox but not Safari until this
-       was "all" instead, which always counts the stroke geometry
-       regardless of how any engine interprets painted. */
+#landing.is-open .piece-hit {
     pointer-events: all;
     cursor: pointer;
 }
 
 @media (hover: hover) and (pointer: fine) {
-    #landing.is-open .piece:hover {
+    #landing.is-open .piece-hit:hover ~ .piece {
+        fill: var(--red);
+    }
+
+    #landing.is-open .piece.is-hovered {
         fill: var(--red);
     }
 }
@@ -136,14 +148,23 @@ body {
     }
 }
 
+/* Once open, pieces are transformed far outside the small SVG element's own
+   box, relying on overflow:visible to still render — but WebKit never
+   hit-tests SVG content past that box no matter what pointer-events say on
+   the content itself, so the piece's own shape (or its padded hit-rect) is
+   never reliably clickable/hoverable there, only in Firefox/Chrome. The
+   label lives in plain HTML outside the SVG entirely, so it has none of
+   that ceiling — padding its own invisible hit area out to comfortably
+   cover the piece makes the label (not the piece silhouette) the one
+   interactive surface that's actually reliable everywhere. Real touch
+   testing on iOS additionally showed taps on the rotated, irregular piece
+   shapes themselves miss unpredictably even where hit-testing does reach
+   them, so the same padding applies at every size, not just touch.  */
+.nav-item {
+    padding: 3.5rem;
+}
+
 @media (max-width: 640px) {
-    /* Real touch testing on iOS showed taps on the rotated, irregular piece
-       shapes themselves miss unpredictably even when they land within the
-       piece's own bounding box — a rotated non-convex SVG path just isn't a
-       reliable touch target. A plain rectangle is, so on mobile the label's
-       invisible tap padding is grown until it reaches back and comfortably
-       covers the piece too, making the label (not the piece silhouette)
-       the real interactive surface. */
     .nav-item {
         padding: 5rem;
     }

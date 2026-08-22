@@ -3,10 +3,11 @@
     const logoSvg = document.getElementById("landing-logo");
     const logoGroup = document.getElementById("logo");
     const piecesGroup = document.getElementById("pieces");
-    const pieces = document.querySelectorAll(".piece");
     const navItems = document.querySelectorAll(".nav-item");
     const hero = document.querySelector(".hero");
     const brandMark = document.querySelector(".brand-mark");
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
 
     const fragmentMap = {
         top: { piece: "#piece-top", nav: ".nav-top" },
@@ -14,6 +15,44 @@
         right: { piece: "#piece-right", nav: ".nav-right" },
         bottom: { piece: "#piece-bottom", nav: ".nav-bottom" }
     };
+
+    // Safari doesn't reliably treat a transparent SVG stroke as "painted"
+    // for pointer-events hit-testing the way Firefox/Chrome do, so padding
+    // a piece's own tap/hover area with a wide stroke only worked in some
+    // browsers — and even where it did, it only padded *outward* from the
+    // path's outline, never filling in the concave notches some of these
+    // shapes have. Wrapping each piece in a plain rectangle sized to its
+    // bounding box (plus the same padding) instead gives every browser an
+    // unambiguous, ordinary filled-rect hit target with no gaps — the
+    // piece's own path becomes purely visual, not interactive.
+    const HIT_PADDING = 50;
+    Object.entries(fragmentMap).forEach(([key, config]) => {
+        const path = document.querySelector(config.piece);
+        const bbox = path.getBBox();
+
+        const group = document.createElementNS(SVG_NS, "g");
+        group.setAttribute("id", path.id);
+        group.setAttribute("class", "piece-unit");
+        group.dataset.fragment = key;
+        group.dataset.href = path.dataset.href;
+
+        const hit = document.createElementNS(SVG_NS, "rect");
+        hit.setAttribute("class", "piece-hit");
+        hit.setAttribute("x", bbox.x - HIT_PADDING);
+        hit.setAttribute("y", bbox.y - HIT_PADDING);
+        hit.setAttribute("width", bbox.width + HIT_PADDING * 2);
+        hit.setAttribute("height", bbox.height + HIT_PADDING * 2);
+        hit.dataset.fragment = key;
+        hit.dataset.href = path.dataset.href;
+
+        path.removeAttribute("id");
+        path.parentNode.insertBefore(group, path);
+        group.appendChild(hit);
+        group.appendChild(path);
+    });
+
+    const pieceGroups = document.querySelectorAll(".piece-unit");
+    const pieceHits = document.querySelectorAll(".piece-hit");
 
     let isOpen = false;
 
@@ -32,13 +71,22 @@
     // it out below so "move the piece to +80px from center" actually lands
     // the piece there, instead of +80px plus whatever it already was off by.
     // Must be called while pieces are still untransformed.
+    // The invisible hit-rect built above is deliberately bigger than the
+    // piece's own visible shape, so anything sizing/centering itself off
+    // "the piece" for visual purposes (rest offsets, hero-overlap
+    // avoidance, label placement) needs the path specifically, not the
+    // group — the group's own bounding box includes that padding.
+    function piecePath(key) {
+        return document.querySelector(fragmentMap[key].piece).querySelector(".piece");
+    }
+
     function getPieceRestOffsets() {
         const centerRect = landing.getBoundingClientRect();
         const centerX = centerRect.left + centerRect.width / 2;
         const centerY = centerRect.top + centerRect.height / 2;
         const offsets = {};
-        Object.entries(fragmentMap).forEach(([key, config]) => {
-            const rect = document.querySelector(config.piece).getBoundingClientRect();
+        Object.keys(fragmentMap).forEach((key) => {
+            const rect = piecePath(key).getBoundingClientRect();
             offsets[key] = {
                 x: (rect.left + rect.right) / 2 - centerX,
                 y: (rect.top + rect.bottom) / 2 - centerY,
@@ -47,25 +95,6 @@
             };
         });
         return offsets;
-    }
-
-    const PIECE_HIT_STROKE = 50; // must match .piece { stroke-width } in landing.css
-
-    // getBoundingClientRect() on a piece includes the invisible stroke added
-    // for a bigger mobile touch target — for the HUD (tracking box + connector
-    // line) that inflated rect reads wrong, so this insets it back out to the
-    // piece's actual visible silhouette.
-    function pieceVisualRect(piece) {
-        const rect = piece.getBoundingClientRect();
-        const inset = (PIECE_HIT_STROKE / getSvgScaleFactor()) * gsap.getProperty(piece, "scale");
-        return {
-            left: rect.left + inset,
-            top: rect.top + inset,
-            right: rect.right - inset,
-            bottom: rect.bottom - inset,
-            width: Math.max(0, rect.width - inset * 2),
-            height: Math.max(0, rect.height - inset * 2)
-        };
     }
 
     // A flat, per-piece "nudge the label down a bit" constant (see the
@@ -77,23 +106,47 @@
     // rendered position and placing the label from that is exact at any
     // size, no per-shape tuning to keep chasing.
     function snapLabelToPiece(key, extraDown) {
-        const piece = document.querySelector(fragmentMap[key].piece);
-        const rect = pieceVisualRect(piece);
+        const rect = piecePath(key).getBoundingClientRect();
         const centerRect = landing.getBoundingClientRect();
         const centerX = centerRect.left + centerRect.width / 2;
         const centerY = centerRect.top + centerRect.height / 2;
-        gsap.set(fragmentMap[key].nav, {
-            x: (rect.left + rect.right) / 2 - centerX,
-            y: (rect.top + rect.bottom) / 2 - centerY + (extraDown || 0)
-        });
+        const x = (rect.left + rect.right) / 2 - centerX;
+        const y = (rect.top + rect.bottom) / 2 - centerY + (extraDown || 0);
+        gsap.set(fragmentMap[key].nav, { x, y });
     }
 
     // Converts a desired on-screen offset (real px, from the logo's center)
-    // into the gsap x/y that actually produces it for this piece.
-    function pieceOffset(key, desiredX, desiredY, restOffsets, k) {
+    // into the gsap x/y that actually produces it for this piece, at the
+    // given rotation/scale. Can't just cancel the piece's scale:1 rest
+    // offset the way this used to (desiredX - restOffset) * k — GSAP's
+    // combined scale+rotate+translate on this SVG group doesn't move the
+    // shape by a simple, origin-independent amount once scale != 1 (a
+    // transform-origin/fill-box quirk on the group), and the error grows
+    // with both scale and how far the piece's own shape sits from the SVG's
+    // coordinate origin — silently landing "bottom" ~170px short of its
+    // target at ordinary desktop sizes (visible as the piece appearing over
+    // the hero text, then jumping to its real spot once the separate
+    // hero-overlap safety net caught up a moment later). A *pure* translate
+    // added on top of an already rotated/scaled element IS reliably
+    // origin-independent, so measuring the piece's real position after
+    // rotation/scale (but before any translate) and computing the
+    // remaining delta from THAT stays exact regardless of scale.
+    function pieceOffset(key, desiredX, desiredY, rotation, scale, k) {
+        const group = document.querySelector(fragmentMap[key].piece);
+        const el = piecePath(key);
+        const centerRect = landing.getBoundingClientRect();
+        const centerX = centerRect.left + centerRect.width / 2;
+        const centerY = centerRect.top + centerRect.height / 2;
+
+        gsap.set(group, { x: 0, y: 0, rotation, scale });
+        const rect = el.getBoundingClientRect();
+        const scaledX = (rect.left + rect.right) / 2 - centerX;
+        const scaledY = (rect.top + rect.bottom) / 2 - centerY;
+        gsap.set(group, { x: 0, y: 0, rotation: 0, scale: 1 });
+
         return {
-            x: (desiredX - restOffsets[key].x) * k,
-            y: (desiredY - restOffsets[key].y) * k
+            x: (desiredX - scaledX) * k,
+            y: (desiredY - scaledY) * k
         };
     }
 
@@ -111,22 +164,23 @@
         const colOffset = Math.min(vw * 0.2, vw / 2 - colBuffer);
 
         const pieces = {
-            top: { ...pieceOffset("top", -colOffset, -rowOffset, restOffsets, k), rotation: -6, scale: pieceScale },
-            right: { ...pieceOffset("right", colOffset, -rowOffset, restOffsets, k), rotation: 8, scale: pieceScale },
-            left: { ...pieceOffset("left", -colOffset, rowOffset, restOffsets, k), rotation: -8, scale: pieceScale },
-            bottom: { ...pieceOffset("bottom", colOffset, rowOffset, restOffsets, k), rotation: 6, scale: pieceScale }
+            top: { ...pieceOffset("top", -colOffset, -rowOffset, -6, pieceScale, k), rotation: -6, scale: pieceScale },
+            right: { ...pieceOffset("right", colOffset, -rowOffset, 8, pieceScale, k), rotation: 8, scale: pieceScale },
+            left: { ...pieceOffset("left", -colOffset, rowOffset, -8, pieceScale, k), rotation: -8, scale: pieceScale },
+            bottom: { ...pieceOffset("bottom", colOffset, rowOffset, 6, pieceScale, k), rotation: 6, scale: pieceScale }
         };
 
         // The label rides on the piece itself — same raw on-screen offset
-        // used to place the piece, plus a small nudge tuned per piece (see
-        // the desktop targets below for why it's not one shared constant)
-        // so it overlaps the piece's actual silhouette — never a separate
-        // perpendicular-offset formula to fall out of sync on a resize.
+        // used to place the piece, so it lands exactly where snapLabelToPiece
+        // (which measures the piece's real center once it's settled) will
+        // put it too — a separate nudged approximation here used to make the
+        // label visibly jump to the unnudged spot the moment that measured
+        // correction landed.
         const labels = {
-            top: { x: -colOffset, y: -rowOffset - 15 * pieceScale },
-            right: { x: colOffset, y: -rowOffset - 15 * pieceScale },
-            left: { x: -colOffset, y: rowOffset - 15 * pieceScale },
-            bottom: { x: colOffset, y: rowOffset - 70 * pieceScale }
+            top: { x: -colOffset, y: -rowOffset },
+            right: { x: colOffset, y: -rowOffset },
+            left: { x: -colOffset, y: rowOffset },
+            bottom: { x: colOffset, y: rowOffset }
         };
 
         return { pieces, labels };
@@ -184,25 +238,23 @@
         // their targets need the scale-factor correction to land at the
         // same visual distance as marginX/marginY.
         const pieces = {
-            top: { ...pieceOffset("top", 0, -marginY, restOffsets, k), rotation: -6, scale: pieceScale },
-            bottom: { ...pieceOffset("bottom", 0, marginYBottom, restOffsets, k), rotation: 6, scale: pieceScale },
-            left: { ...pieceOffset("left", -marginX, 0, restOffsets, k), rotation: -14, scale: pieceScale },
-            right: { ...pieceOffset("right", marginX, 0, restOffsets, k), rotation: 14, scale: pieceScale }
+            top: { ...pieceOffset("top", 0, -marginY, -6, pieceScale, k), rotation: -6, scale: pieceScale },
+            bottom: { ...pieceOffset("bottom", 0, marginYBottom, 6, pieceScale, k), rotation: 6, scale: pieceScale },
+            left: { ...pieceOffset("left", -marginX, 0, -14, pieceScale, k), rotation: -14, scale: pieceScale },
+            right: { ...pieceOffset("right", marginX, 0, 14, pieceScale, k), rotation: 14, scale: pieceScale }
         };
 
         // The label rides directly on its piece — same raw on-screen offset
-        // used to place the piece, plus a small fixed nudge so it overlaps
-        // the piece's actual visible silhouette rather than its unrotated
-        // anchor point. Each piece has its own rotation + proportions
-        // (bottom especially — short, wide, rotated — sits differently than
-        // top/left/right), so the nudge is tuned per piece rather than one
-        // shared constant. Never a separate perpendicular-offset formula
-        // with its own edge caps to fall out of sync on a resize, though.
+        // used to place the piece, so it lands exactly where snapLabelToPiece
+        // (which measures the piece's real center once it's settled) will
+        // put it too — a separate nudged approximation here used to make the
+        // label visibly jump to the unnudged spot the moment that measured
+        // correction landed.
         const labels = {
-            top: { x: 0, y: -marginY - 15 * pieceScale },
-            bottom: { x: 0, y: marginYBottom - 58 * pieceScale },
-            left: { x: -marginX, y: -15 * pieceScale },
-            right: { x: marginX, y: -15 * pieceScale }
+            top: { x: 0, y: -marginY },
+            bottom: { x: 0, y: marginYBottom },
+            left: { x: -marginX, y: 0 },
+            right: { x: marginX, y: 0 }
         };
 
         return { pieces, labels };
@@ -214,7 +266,7 @@
         gsap.set(logoSvg, { scale: 1, x: 0, y: 0, transformOrigin: "50% 50%" });
         gsap.set(logoGroup, { opacity: 1 });
         gsap.set(piecesGroup, { opacity: 0 });
-        gsap.set(pieces, { x: 0, y: 0, rotation: 0, scale: 1, transformOrigin: "50% 50%" });
+        gsap.set(pieceGroups, { x: 0, y: 0, rotation: 0, scale: 1 });
         gsap.set(navItems, { opacity: 0, x: 0, y: 0, xPercent: -50, yPercent: -50 });
         gsap.set(hero, { opacity: 0, x: 0, y: 16, xPercent: -50, yPercent: -50 });
         gsap.set(brandMark, { opacity: 0, y: -10 });
@@ -267,9 +319,9 @@
         };
 
         Object.entries(fragmentMap).forEach(([key, config]) => {
-            const piece = document.querySelector(config.piece);
+            const group = document.querySelector(config.piece);
             const nav = document.querySelector(config.nav);
-            const box = pieceVisualRect(piece);
+            const box = piecePath(key).getBoundingClientRect();
 
             const overlapsX = box.left < guard.right && box.right > guard.left;
             const overlapsY = box.top < guard.bottom && box.bottom > guard.top;
@@ -294,11 +346,28 @@
             // which floatPiece()'s relative += tweens could cut off before
             // it landed, leaving the nav adrift from a not-quite-corrected
             // spot).
-            gsap.killTweensOf(piece);
+            // dx/dy are real on-screen px (from getBoundingClientRect). The
+            // nav label is a plain HTML element, so it takes them as-is —
+            // but the piece group lives inside the SVG's viewBox coordinate
+            // space, so its gsap x/y need the same px→viewBox-unit scaling
+            // pieceOffset() applies everywhere else, or the correction lands
+            // scaled down by k and barely dents the overlap.
+            const k = getSvgScaleFactor();
+            gsap.killTweensOf(group);
             gsap.killTweensOf(nav);
-            gsap.to(piece, { x: `+=${dx}`, y: `+=${dy}`, duration: 0.4, ease: "power2.out" });
+            gsap.to(group, { x: `+=${dx * k}`, y: `+=${dy * k}`, duration: 0.4, ease: "power2.out" });
             gsap.to(nav, { x: `+=${dx}`, y: `+=${dy}`, duration: 0.4, ease: "power2.out" });
-            gsap.delayedCall(0.4, () => floatPiece(key));
+            // The nav's own "+=dx/dy" slide is only ever an approximation of
+            // where the piece actually lands (float's relative oscillation
+            // getting killed mid-cycle repeatedly, across possibly several
+            // of these corrections in a row, doesn't reliably keep the two
+            // in lockstep) — resync it to the piece's real measured position
+            // before letting float take over again, or small mismatches
+            // accumulate into a visibly detached label over several checks.
+            gsap.delayedCall(0.4, () => {
+                snapLabelToPiece(key);
+                floatPiece(key);
+            });
         });
     }
 
@@ -320,7 +389,7 @@
         if (isOpen) return;
         isOpen = true;
 
-        const { pieces: pieceTargets, labels: labelTargets } = getTargets();
+        const { pieces: pieceTargets } = getTargets();
         const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
 
         tl.to(landing, { backgroundColor: "#fff", duration: 0.8 }, 0)
@@ -330,6 +399,13 @@
             .to(logoGroup, { opacity: 0, duration: 0.3 }, 0.48)
             .add(() => landing.classList.add("is-open"), 0.5);
 
+        // The label doesn't get its own separate tween toward getTargets()'s
+        // analytical approximation of where the piece will land — that
+        // approximation is never quite exact, so the label used to visibly
+        // hop the moment a later correction replaced it with the piece's
+        // real position. Driving it from the piece's own tween instead (every
+        // frame, via onUpdate) keeps it exactly glued to the piece's real
+        // rendered position throughout the whole flight, not just at the end.
         Object.entries(pieceTargets).forEach(([key, target]) => {
             tl.to(`#piece-${key}`, {
                 x: target.x,
@@ -337,33 +413,13 @@
                 rotation: target.rotation,
                 scale: target.scale,
                 duration: 2.1,
-                ease: "expo.out"
-                // Floating starts below, after the label correction — see
-                // the note there for why not from this tween's onComplete.
+                ease: "expo.out",
+                onUpdate: () => snapLabelToPiece(key)
             }, 0.55);
         });
 
-        Object.entries(labelTargets).forEach(([key, target]) => {
-            tl.to(fragmentMap[key].nav, {
-                x: target.x,
-                y: target.y,
-                duration: 2.1,
-                ease: "expo.out"
-            }, 0.55);
-        });
-
-        // The label tween above only aims for getTargets()'s analytical
-        // approximation of where the piece will land — this corrects it to
-        // the piece's real measured position. Doing it from the piece
-        // tween's own onComplete used to race the label's own tween (both
-        // finish at the same timeline tick, so whichever's final-frame
-        // write landed second silently won it) — a separate call scheduled
-        // a beat later runs in its own tick, strictly after both are done.
         Object.keys(pieceTargets).forEach((key) => {
-            tl.call(() => {
-                snapLabelToPiece(key);
-                floatPiece(key);
-            }, null, 0.55 + 2.1 + 0.05);
+            tl.call(() => floatPiece(key), null, 0.55 + 2.1 + 0.05);
         });
 
         tl.to(hero, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 1.4)
@@ -430,7 +486,7 @@
     function repositionOpen() {
         if (!isOpen) return;
 
-        gsap.killTweensOf(pieces);
+        gsap.killTweensOf(pieceGroups);
         gsap.killTweensOf(navItems);
 
         // getPieceRestOffsets() (called inside getTargets()) only measures
@@ -439,10 +495,16 @@
         // already spread out from the last layout. Without resetting them
         // first, it measures the wrong reference point and every position
         // comes out wrong, compounding further on each subsequent resize.
-        gsap.set(pieces, { x: 0, y: 0, rotation: 0, scale: 1 });
+        gsap.set(pieceGroups, { x: 0, y: 0, rotation: 0, scale: 1 });
 
-        const { pieces: pieceTargets, labels: labelTargets } = getTargets();
+        const { pieces: pieceTargets } = getTargets();
 
+        // The label isn't tweened toward its own separately-computed target —
+        // that's never quite exact, so it used to visibly hop the moment a
+        // later correction replaced it with the piece's real position.
+        // Driving it every frame from the piece's own tween keeps it glued
+        // to the piece's real rendered position throughout the move, not
+        // just once the piece settles.
         Object.entries(pieceTargets).forEach(([key, target]) => {
             gsap.to(fragmentMap[key].piece, {
                 x: target.x,
@@ -450,45 +512,23 @@
                 rotation: target.rotation,
                 scale: target.scale,
                 duration: 0.5,
-                ease: "power2.out"
+                ease: "power2.out",
+                onUpdate: () => snapLabelToPiece(key)
             });
         });
 
-        Object.entries(labelTargets).forEach(([key, target]) => {
-            gsap.to(fragmentMap[key].nav, {
-                x: target.x,
-                y: target.y,
-                duration: 0.5,
-                ease: "power2.out"
-            });
-        });
-
-        // Restarting float per-piece as each one's own tween completed used
-        // to race the label's separate move tween landing at roughly the
-        // same time — floatPiece() touches both, so whichever finished
-        // first could get overwritten mid-flight by the other, leaving it
-        // adrift from a stale not-quite-final position. Snapping labels to
-        // the piece's real measured position (the tween above only aims for
-        // the analytical approximation — see getTargets()) has the same
-        // problem if it runs at the exact instant the tweens complete (0.5),
-        // same tick as their own final-frame write — a beat later runs in
-        // its own tick, strictly after both are actually done.
-        gsap.delayedCall(0.55, () => {
-            Object.keys(pieceTargets).forEach((key) => snapLabelToPiece(key));
-            startFloating();
-        });
+        gsap.delayedCall(0.55, startFloating);
         gsap.delayedCall(0.6, scheduleHeroOverlapChecks);
     }
 
-    const SVG_NS = "http://www.w3.org/2000/svg";
-
     // Splits the piece into an irregular fan of triangular shards radiating
     // from its center — like cracked glass — that burst outward, spin and
-    // fade, plus a quick flash at the point of impact.
-    function shatterPiece(piece) {
-        const bbox = piece.getBBox();
-        const d = piece.getAttribute("d");
-        const fill = getComputedStyle(piece).fill;
+    // fade, plus a quick flash at the point of impact. `path` is the
+    // visible piece path (not the wrapping group or its hit-rect).
+    function shatterPiece(path, fragmentKey) {
+        const bbox = path.getBBox();
+        const d = path.getAttribute("d");
+        const fill = getComputedStyle(path).fill;
         const pieceCx = bbox.x + bbox.width / 2;
         const pieceCy = bbox.y + bbox.height / 2;
         const radius = Math.hypot(bbox.width, bbox.height); // clears every corner
@@ -518,7 +558,7 @@
             const p2x = pieceCx + radius * Math.cos(a2);
             const p2y = pieceCy + radius * Math.sin(a2);
 
-            const clipId = `shard-clip-${piece.id}-${i}`;
+            const clipId = `shard-clip-${fragmentKey}-${i}`;
             const clip = document.createElementNS(SVG_NS, "clipPath");
             clip.setAttribute("id", clipId);
             const wedge = document.createElementNS(SVG_NS, "polygon");
@@ -570,79 +610,75 @@
         gsap.set(flash, { transformOrigin: `${pieceCx}px ${pieceCy}px`, opacity: 0.9 });
         gsap.to(flash, { scale: radius / (Math.max(bbox.width, bbox.height) * 0.12) * 0.6, opacity: 0, duration: 0.35, ease: "power2.out" });
 
-        // getBBox() ignores the piece's current GSAP transform (it's the
-        // untransformed local geometry), so without this the shards would
-        // render back at the piece's rest position instead of wherever it
-        // actually is on screen right now.
-        piece.parentNode.insertBefore(shardGroup, piece.nextSibling);
+        // The path lives inside the piece's <g> (which carries the actual
+        // GSAP position/rotation/scale) — inserting the shard group as a
+        // sibling there means it inherits that same transform for free, no
+        // need to read and re-apply it explicitly.
+        path.parentNode.insertBefore(shardGroup, path.nextSibling);
         shardGroup.style.transformBox = "view-box";
-        gsap.set(shardGroup, {
-            transformOrigin: `${pieceCx}px ${pieceCy}px`,
-            x: gsap.getProperty(piece, "x"),
-            y: gsap.getProperty(piece, "y"),
-            rotation: gsap.getProperty(piece, "rotation"),
-            scale: gsap.getProperty(piece, "scale")
-        });
+        gsap.set(shardGroup, { transformOrigin: `${pieceCx}px ${pieceCy}px` });
 
-        gsap.set(piece, { opacity: 0 });
-        piece.style.pointerEvents = "none";
+        gsap.set(path, { opacity: 0 });
 
         gsap.delayedCall(1.1, () => shardGroup.remove());
     }
 
     const RESPAWN_DELAY = 4.5;
 
-    function respawnPiece(piece, key) {
-        delete piece.dataset.broken;
-        piece.style.pointerEvents = "";
-        gsap.to(piece, { opacity: 1, duration: 0.6, ease: "power2.out" });
+    function respawnPiece(group, key) {
+        delete group.dataset.broken;
+        const hit = group.querySelector(".piece-hit");
+        hit.style.pointerEvents = "";
+        gsap.to(group.querySelector(".piece"), { opacity: 1, duration: 0.6, ease: "power2.out" });
 
         const nav = document.querySelector(fragmentMap[key].nav);
         nav.style.pointerEvents = "";
         gsap.to(nav, { opacity: 1, duration: 0.6, ease: "power2.out" });
 
-        const trackingBox = document.querySelector(`.tracking-box[data-fragment="${key}"]`);
-        const connectorLine = document.querySelector(`.connector[data-fragment="${key}"]`);
-        gsap.to(trackingBox, { opacity: 0.35, duration: 0.6, ease: "power2.out" });
-        gsap.to(connectorLine, { opacity: 0.45, duration: 0.6, ease: "power2.out" });
-
         floatPiece(key);
     }
 
-    function breakPiece(piece) {
-        if (piece.dataset.broken) return;
-        piece.dataset.broken = "true";
+    function breakPiece(group) {
+        if (group.dataset.broken) return;
+        group.dataset.broken = "true";
 
-        shatterPiece(piece);
+        const key = group.dataset.fragment;
+        shatterPiece(group.querySelector(".piece"), key);
+        group.querySelector(".piece-hit").style.pointerEvents = "none";
 
-        const key = piece.dataset.fragment;
         const config = fragmentMap[key];
         if (!config) return;
 
         const nav = document.querySelector(config.nav);
-        gsap.killTweensOf(piece);
+        gsap.killTweensOf(group);
         gsap.killTweensOf(nav);
         gsap.to(nav, { opacity: 0, duration: 0.5 });
         nav.style.pointerEvents = "none";
 
-        const trackingBox = document.querySelector(`.tracking-box[data-fragment="${key}"]`);
-        const connectorLine = document.querySelector(`.connector[data-fragment="${key}"]`);
-        gsap.to([trackingBox, connectorLine], { opacity: 0, duration: 0.5 });
-
-        gsap.delayedCall(RESPAWN_DELAY, () => respawnPiece(piece, key));
+        gsap.delayedCall(RESPAWN_DELAY, () => respawnPiece(group, key));
     }
 
-    pieces.forEach((piece) => {
-        piece.addEventListener("click", (e) => {
+    pieceHits.forEach((hit) => {
+        hit.addEventListener("click", (e) => {
             if (!isOpen) return;
             e.stopPropagation();
-            const href = piece.dataset.href;
+            const href = hit.dataset.href;
             if (href === "#") {
-                breakPiece(piece);
+                breakPiece(hit.parentNode);
             } else if (href) {
                 window.location.href = href;
             }
         });
+    });
+
+    // The label is the one reliably hoverable/clickable surface once open
+    // (see the .piece-unit comment in landing.css for why the SVG piece
+    // itself isn't, in WebKit) — so drive the piece's hover-red feedback
+    // from the label's own hover instead of leaning on the SVG for it too.
+    navItems.forEach((nav) => {
+        const piece = piecePath(nav.dataset.fragment);
+        nav.addEventListener("mouseenter", () => piece.classList.add("is-hovered"));
+        nav.addEventListener("mouseleave", () => piece.classList.remove("is-hovered"));
     });
 
     navItems.forEach((nav) => {
