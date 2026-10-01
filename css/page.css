@@ -382,3 +382,32 @@ body {
     letter-spacing: 0.06em;
     color: #999;
 }
+
+/* ── Portfolio (portfolio/index.html) — unlisted page, PDF pages as images ── */
+
+.portfolio-actions {
+    margin: 0 0 2.5rem;
+}
+
+.portfolio-page {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: 1.5rem;
+    background: #fafafa;
+    box-shadow: 0 0 0 1px #eee;
+}
+
+/* Cover and back cover are single A4 pages, not spreads — half width so
+   they match the height of one page within a spread. */
+.portfolio-page--single {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 640px) {
+    .portfolio-page--single {
+        width: 75%;
+    }
+}
