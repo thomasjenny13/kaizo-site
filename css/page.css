@@ -383,31 +383,163 @@ body {
     color: #999;
 }
 
-/* ── Portfolio (portfolio/index.html) — unlisted page, PDF pages as images ── */
+/* ── Portfolio (portfolio/index.html) — unlisted page. The PDF's spreads are
+   shown edge to edge on the white page, with no frame, so they read as part
+   of the site rather than a document dropped onto it. On phones each spread
+   is cut into its two pages (.folio-halves). Every image opens a zoomable
+   lightbox (js/portfolio.js). ── */
 
-.portfolio-actions {
-    margin: 0 0 2.5rem;
+.portfolio {
+    max-width: 120rem;
+    margin: 0 auto;
+    padding: clamp(6rem, 18vh, 9rem) clamp(1rem, 3vw, 3rem) 6rem;
 }
 
-.portfolio-page {
+.portfolio .project-header,
+.portfolio-actions {
+    max-width: 64rem;
+}
+
+.portfolio-actions {
+    margin: 0 0 clamp(3rem, 8vh, 5rem);
+}
+
+.folio {
+    margin: 0 0 clamp(2rem, 6vw, 5rem);
+}
+
+.folio-img {
     display: block;
     width: 100%;
     height: auto;
-    margin-bottom: 1.5rem;
-    background: #fafafa;
-    box-shadow: 0 0 0 1px #eee;
+    cursor: zoom-in;
 }
 
-/* Cover and back cover are single A4 pages, not spreads — half width so
-   they match the height of one page within a spread. */
-.portfolio-page--single {
-    width: 50%;
+.folio--single {
+    max-width: 34rem;
     margin-left: auto;
     margin-right: auto;
 }
 
+.folio-halves {
+    display: none;
+}
+
 @media (max-width: 640px) {
-    .portfolio-page--single {
-        width: 75%;
+    .portfolio {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .portfolio .project-header,
+    .portfolio-actions {
+        padding: 0 1.2rem;
+    }
+
+    .folio-spread {
+        display: none;
+    }
+
+    .folio-halves {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .folio {
+        margin-bottom: 1rem;
+    }
+
+    .folio--single {
+        max-width: none;
+    }
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--white);
+}
+
+.lightbox[hidden] {
+    display: none;
+}
+
+.lightbox-stage {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+}
+
+.lightbox-img {
+    margin: auto;
+    max-width: 100%;
+    max-height: 100%;
+    cursor: zoom-in;
+}
+
+.lightbox.is-zoomed .lightbox-img {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+}
+
+.lightbox-btn {
+    position: fixed;
+    padding: 0.6rem 0.9rem;
+    border: 0;
+    background: rgba(255, 255, 255, 0.85);
+    font-family: "Space Mono", monospace;
+    font-size: 1.1rem;
+    color: var(--red);
+    cursor: pointer;
+}
+
+.lightbox-close {
+    top: clamp(0.6rem, 2vh, 1.2rem);
+    right: clamp(0.6rem, 2vw, 1.2rem);
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.lightbox-prev,
+.lightbox-next {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lightbox-prev {
+    left: clamp(0.4rem, 1.5vw, 1rem);
+}
+
+.lightbox-next {
+    right: clamp(0.4rem, 1.5vw, 1rem);
+}
+
+.lightbox-hint {
+    position: fixed;
+    bottom: clamp(0.8rem, 2.5vh, 1.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: "Space Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #999;
+    pointer-events: none;
+}
+
+.lightbox.is-zoomed .lightbox-hint {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .lightbox-prev,
+    .lightbox-next {
+        top: auto;
+        bottom: 0.6rem;
+        transform: none;
     }
 }
