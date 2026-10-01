@@ -15,7 +15,7 @@
         index = (i + list.length) % list.length;
         const img = list[index];
         box.classList.remove('is-zoomed');
-        big.src = img.src; // low-res first, swapped for HD once it has loaded
+        big.src = img.currentSrc || img.src; // already-loaded size first, swapped for HD once it has loaded
         big.alt = img.alt;
         const hd = new Image();
         hd.onload = () => { if (list[index] === img) big.src = hd.src; };
