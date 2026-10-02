@@ -436,8 +436,9 @@ body {
         margin-bottom: 1rem;
     }
 
+    /* Same width as one page of a spread */
     .folio--single {
-        max-width: none;
+        max-width: 50%;
     }
 }
 
