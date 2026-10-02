@@ -385,8 +385,8 @@ body {
 
 /* ── Portfolio (portfolio/index.html) — unlisted page. The PDF's spreads are
    shown edge to edge on the white page, with no frame, so they read as part
-   of the site rather than a document dropped onto it. On phones each spread
-   is cut into its two pages (.folio-halves). Every image opens a zoomable
+   of the site rather than a document dropped onto it. Spreads stay whole on
+   phones too — the two pages are designed together. Every image opens a zoomable
    lightbox (js/portfolio.js). ── */
 
 .portfolio {
@@ -421,10 +421,6 @@ body {
     margin-right: auto;
 }
 
-.folio-halves {
-    display: none;
-}
-
 @media (max-width: 640px) {
     .portfolio {
         padding-left: 0;
@@ -434,15 +430,6 @@ body {
     .portfolio .project-header,
     .portfolio-actions {
         padding: 0 1.2rem;
-    }
-
-    .folio-spread {
-        display: none;
-    }
-
-    .folio-halves {
-        display: grid;
-        gap: 1rem;
     }
 
     .folio {
