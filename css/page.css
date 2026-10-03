@@ -385,14 +385,9 @@ body {
 
 /* ── Portfolio (portfolio/index.html) — unlisted page. The PDF's spreads are
    shown wide, with no frame, so they read as part of the site rather than a
-   document dropped onto it. Spreads stay whole on
-   phones too — the two pages are designed together. A light beige ground
-   sets the white pages apart from one another. ── */
-
-.portfolio-root,
-.portfolio-root body {
-    background: #f1ece2;
-}
+   document dropped onto it. Spreads stay whole on phones too — the two pages
+   are designed together. The page images are tinted to a very light beige
+   paper at export, so they stand out from the white site. ── */
 
 .portfolio {
     max-width: 120rem;
@@ -419,8 +414,9 @@ body {
     height: auto;
 }
 
+/* Cover and back: exactly one page of a spread */
 .folio--single {
-    max-width: 34rem;
+    max-width: 50%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -438,10 +434,5 @@ body {
 
     .folio {
         margin-bottom: 1rem;
-    }
-
-    /* Same width as one page of a spread */
-    .folio--single {
-        max-width: 50%;
     }
 }
