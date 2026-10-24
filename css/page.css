@@ -429,6 +429,9 @@ body {
     display: block;
     width: 100%;
     height: auto;
+    /* Hairline so the light beige paper reads against the white page */
+    outline: 1px solid #d9d3c7;
+    outline-offset: -1px;
 }
 
 /* Cover and back: exactly one page of a spread */
