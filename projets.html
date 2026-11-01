@@ -26,6 +26,19 @@
             padding: 0;
         }
 
+        /* Three reels side by side — give them the full width and a wide
+           gutter so the fanned-out tiles of neighbouring reels don't crowd. */
+        @media (min-width: 641px) {
+            .page.page--wide {
+                max-width: 100rem;
+                padding: 0 clamp(2rem, 5vw, 5rem);
+            }
+
+            .wheel-columns {
+                gap: clamp(3rem, 9vw, 12rem);
+            }
+        }
+
         /* Stacked mobile layout can run slightly taller than very short
            viewports — allow a fallback page scroll there instead of
            clipping the second wheel outright. */
