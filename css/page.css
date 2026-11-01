@@ -357,9 +357,19 @@ body {
     height: auto;
 }
 
+/* The series title stays within the left column instead of running
+   across both. */
+.project-header:has(+ .photo-grid) {
+    max-width: calc((100% - 1.5rem) / 2);
+}
+
 @media (max-width: 640px) {
     .photo-grid {
         columns: 1;
+    }
+
+    .project-header:has(+ .photo-grid) {
+        max-width: none;
     }
 }
 
