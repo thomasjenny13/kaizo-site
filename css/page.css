@@ -373,6 +373,62 @@ body {
     grid-column: span 2;
 }
 
+.photo-grid .project-photo {
+    cursor: zoom-in;
+}
+
+/* Full-screen viewer (js/photos.js) — one photo at a time on black. */
+.viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    cursor: pointer;
+}
+
+.viewer[hidden] {
+    display: none;
+}
+
+.viewer-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.viewer-count {
+    position: absolute;
+    bottom: clamp(1rem, 3vh, 1.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: "Space Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.viewer-close {
+    position: absolute;
+    top: clamp(0.75rem, 2.5vh, 1.25rem);
+    right: clamp(0.75rem, 2.5vw, 1.25rem);
+    padding: 0.25rem 0.6rem;
+    border: 0;
+    background: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+}
+
+.viewer-open,
+.viewer-open body {
+    overflow: hidden;
+}
+
 /* The series title stays within two of the three columns. */
 .project-header:has(+ .photo-grid) {
     max-width: calc(95cqw / 3 * 2 + 2.5cqw);
