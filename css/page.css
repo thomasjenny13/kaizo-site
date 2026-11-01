@@ -344,33 +344,28 @@ body {
     }
 }
 
-/* Photo series (projet-13/14/15.html) — three columns on desktop,
-   landscape shots (.photo-wide) spanning two. Grid rows are a fixed
-   fraction of the page width (cqw), so each photo's row span (--span,
-   precomputed in the HTML from its aspect ratio: col = 0.95W/3, gap =
-   0.025W, row = col/20) holds at any width and the columns pack like a
-   masonry without cropping. */
+/* Photo series (projet-13/14/15.html) — justified rows on desktop: three
+   portraits, or a landscape next to a portrait (rows are built by
+   tools/layout.py). Each photo's flex share is its aspect ratio (--ar), so
+   all photos in a row end up the same height — no cropping, no holes. */
 .page:has(> .photo-grid) {
     container-type: inline-size;
 }
 
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: calc(95cqw / 60);
-    grid-auto-flow: row dense;
-    column-gap: 2.5cqw;
+.photo-row {
+    display: flex;
+    gap: 2.5cqw;
+    margin-bottom: 2.5cqw;
 }
 
-.photo-grid .project-photo {
-    grid-row: span var(--span);
-    align-self: start;
+.photo-row > * {
+    flex: var(--ar) 1 0%;
+    min-width: 0;
+}
+
+.photo-row .project-photo {
     height: auto;
     margin: 0;
-}
-
-.photo-grid .photo-wide {
-    grid-column: span 2;
 }
 
 .photo-grid .project-photo {
@@ -435,12 +430,17 @@ body {
 }
 
 @media (max-width: 640px) {
-    .photo-grid {
+    .photo-row {
         display: block;
+        margin: 0;
     }
 
-    .photo-grid .project-photo {
+    .photo-row .project-photo {
         margin-bottom: 1.5rem;
+    }
+
+    .photo-spacer {
+        display: none;
     }
 
     .project-header:has(+ .photo-grid) {
