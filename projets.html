@@ -71,9 +71,6 @@
                         <a class="wheel-tile" href="projet-12.html" data-project="motoclub" style="--a: 100deg">
                             <img src="images/projets/affiches/230420_motoclub show/thumb.jpg" alt="">
                         </a>
-                        <a class="wheel-tile" href="projet-06.html" data-project="seven" style="--a: 140deg">
-                            <img src="images/projets/affiches/seven/logo.svg" alt="">
-                        </a>
                     </div>
                 </div>
             </div>
@@ -90,9 +87,6 @@
                         </a>
                         <a class="wheel-tile" href="projet-05.html" data-project="t" style="--a: 20deg">
                             <img src="images/projets/logos/t/logo.svg" alt="" style="--art-scale: 1.4">
-                        </a>
-                        <a class="wheel-tile" href="projet-06.html" data-project="seven" style="--a: 60deg">
-                            <img src="images/projets/logos/seven/logo.svg" alt="">
                         </a>
                     </div>
                 </div>
@@ -150,53 +144,6 @@
             var STEP = 40; // degrees between adjacent tiles — must match the --a spacing in the HTML
 
             var wheelEls = document.querySelectorAll(".wheel");
-            // Only the reels that hold a seven tile take part in the jackpot —
-            // the photo reel has none and would otherwise block it for good.
-            var jackpotWheels = Array.prototype.filter.call(wheelEls, function (wheel) {
-                return wheel.querySelector('[data-project="seven"]');
-            });
-            var centerState = new Map();
-            var jackpotArmed = true;
-
-            function checkJackpot() {
-                if (window.innerWidth < 640) return; // seven tiles are hidden on mobile — nothing to line up
-                if (jackpotWheels.some(function (wheel) { return !centerState.has(wheel); })) return;
-                var tiles = [];
-                var allSeven = true;
-                jackpotWheels.forEach(function (wheel) {
-                    var state = centerState.get(wheel);
-                    if (!state.tile || state.project !== "seven" || state.effective > 8) {
-                        allSeven = false;
-                    } else {
-                        tiles.push(state.tile);
-                    }
-                });
-                if (allSeven) {
-                    if (jackpotArmed) {
-                        jackpotArmed = false;
-                        triggerJackpot(tiles);
-                    }
-                } else {
-                    jackpotArmed = true;
-                }
-            }
-
-            function triggerJackpot(tiles) {
-                tiles.forEach(function (tile) {
-                    tile.classList.remove("wheel-tile--jackpot");
-                    void tile.offsetWidth; // restart the animation if it's still running
-                    tile.classList.add("wheel-tile--jackpot");
-                });
-
-                var banner = document.createElement("div");
-                banner.className = "jackpot-banner";
-                banner.textContent = "7 • 7 — JACKPOT";
-                document.body.appendChild(banner);
-                banner.addEventListener("animationend", function () {
-                    banner.remove();
-                });
-            }
-
             wheelEls.forEach(function (wheel) {
                 // Bind scroll/touch to the whole column, not just the 3D
                 // wheel box — tiles project outside that box via perspective,
@@ -220,9 +167,6 @@
                 function apply() {
                     wheel.style.setProperty("--wheel-offset", progress + "deg");
 
-                    var frontTile = null;
-                    var frontAbs = Infinity;
-
                     // Fade + "magnetize" tiles based on distance from front-center:
                     // the closest tile grows slightly (slot-machine snap feel) while
                     // the ones rotating away shrink back and fade so they don't
@@ -235,19 +179,7 @@
                         t.el.style.opacity = fade;
                         t.el.style.setProperty("--tile-scale", (1 + magnet * 0.18).toFixed(3));
                         t.el.style.pointerEvents = fade < 0.15 ? "none" : "";
-
-                        if (absEffective < frontAbs) {
-                            frontAbs = absEffective;
-                            frontTile = t.el;
-                        }
                     });
-
-                    centerState.set(wheel, {
-                        tile: frontTile,
-                        project: frontTile && frontTile.dataset.project,
-                        effective: frontAbs
-                    });
-                    checkJackpot();
                 }
 
                 function stopSnap() {
