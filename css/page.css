@@ -344,28 +344,47 @@ body {
     }
 }
 
-/* Photo series (projet-13.html) — mixed portrait/landscape shots in a
-   two-column masonry, so neither orientation gets cropped. */
+/* Photo series (projet-13/14/15.html) — three columns on desktop,
+   landscape shots (.photo-wide) spanning two. Grid rows are a fixed
+   fraction of the page width (cqw), so each photo's row span (--span,
+   precomputed in the HTML from its aspect ratio: col = 0.95W/3, gap =
+   0.025W, row = col/20) holds at any width and the columns pack like a
+   masonry without cropping. */
+.page:has(> .photo-grid) {
+    container-type: inline-size;
+}
+
 .photo-grid {
-    columns: 2;
-    column-gap: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: calc(95cqw / 60);
+    grid-auto-flow: row dense;
+    column-gap: 2.5cqw;
 }
 
 .photo-grid .project-photo {
-    break-inside: avoid;
-    margin-bottom: 1.5rem;
+    grid-row: span var(--span);
+    align-self: start;
     height: auto;
+    margin: 0;
 }
 
-/* The series title stays within the left column instead of running
-   across both. */
+.photo-grid .photo-wide {
+    grid-column: span 2;
+}
+
+/* The series title stays within two of the three columns. */
 .project-header:has(+ .photo-grid) {
-    max-width: calc((100% - 1.5rem) / 2);
+    max-width: calc(95cqw / 3 * 2 + 2.5cqw);
 }
 
 @media (max-width: 640px) {
     .photo-grid {
-        columns: 1;
+        display: block;
+    }
+
+    .photo-grid .project-photo {
+        margin-bottom: 1.5rem;
     }
 
     .project-header:has(+ .photo-grid) {
