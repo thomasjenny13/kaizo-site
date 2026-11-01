@@ -375,6 +375,25 @@ body {
     }
 }
 
+/* Photo series (projet-13.html) — mixed portrait/landscape shots in a
+   two-column masonry, so neither orientation gets cropped. */
+.photo-grid {
+    columns: 2;
+    column-gap: 1.5rem;
+}
+
+.photo-grid .project-photo {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+    height: auto;
+}
+
+@media (max-width: 640px) {
+    .photo-grid {
+        columns: 1;
+    }
+}
+
 .project-caption {
     margin: -1.8rem 0 2.5rem;
     font-family: "Space Mono", monospace;
