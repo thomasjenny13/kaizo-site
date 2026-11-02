@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&family=Unbounded:wght@800&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/page.css?v=10">
+    <link rel="stylesheet" href="../css/page.css?v=11">
 </head>
 
 <body>
@@ -35,7 +35,22 @@
         </div>
 
 
-        <img class="project-photo" src="../images/projets/logos/t/thumb.png" alt="Logo T : monogramme géométrique noir.">
+        <svg class="project-photo logo-motion" viewBox="0 0 1080 1080" role="img" aria-label="Animation du logo T : une ligne verticale, la croix s’ouvre comme un livre, les traits du T se tracent, le t se remplit, puis la croix se referme.">
+            <polygon class="lm-tee" points="540 405 540 675 540 990 675 990 675 675 832.5 675 832.5 405 540 405"/>
+            <g class="lm-lines">
+                <line class="lm-spine" x1="540" y1="90" x2="540" y2="990"/>
+                <g class="lm-half">
+                    <path d="M540 90 H405.5 V405 H90.5 V675 H405.5 V990 H540"/>
+                    <line class="lm-draw" pathLength="1" x1="540" y1="405" x2="405.5" y2="405"/>
+                    <line class="lm-draw" pathLength="1" x1="248" y1="405" x2="248" y2="675"/>
+                </g>
+                <g class="lm-half">
+                    <path d="M540 90 H675 V405 H990 V675 H675 V990 H540"/>
+                    <line class="lm-draw" pathLength="1" x1="540" y1="405" x2="675" y2="405"/>
+                    <line class="lm-draw" pathLength="1" x1="832.5" y1="405" x2="832.5" y2="675"/>
+                </g>
+            </g>
+        </svg>
 
         <div class="project-gallery">
             <img class="project-photo" src="../images/projets/logos/t/logo.svg" alt="Version vectorielle du logo T.">
@@ -44,6 +59,8 @@
     </main>
 
     <a class="back-link" href="../projets.html">← work</a>
+
+    <script src="../js/logo-t-motion.js"></script>
 </body>
 
 </html>

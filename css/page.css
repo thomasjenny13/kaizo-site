@@ -541,3 +541,21 @@ body {
     white-space: nowrap;
     border: 0;
 }
+
+/* Logo T motion (projets/logo-t.html, driven by js/logo-t-motion.js) */
+.logo-motion {
+    aspect-ratio: 1;
+    height: auto;
+}
+
+.logo-motion .lm-lines * {
+    fill: none;
+    stroke: var(--black);
+    stroke-width: 1.2;
+    stroke-miterlimit: 10;
+    vector-effect: non-scaling-stroke;
+}
+
+.logo-motion .lm-tee {
+    fill: var(--black);
+}
