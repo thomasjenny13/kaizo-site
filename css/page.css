@@ -588,18 +588,30 @@ body {
     fill: var(--black);
 }
 
-/* TdM 2026 boat sheets — 42 A2 pages, three across */
+/* TdM 2026 boat sheets — 42 A2 pages, three across, in a hairline grid
+   (the outer frame on the container, each cell draws its right and bottom
+   edge) so the white sheets read as separate pages on the white page. */
 .project-gallery--fiches {
     grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+}
+
+.project-gallery--fiches .project-photo {
+    height: auto;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background: none;
 }
 
 @media (max-width: 640px) {
     .project-gallery--fiches {
         grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
     }
-}
 
-.project-gallery--fiches .project-photo {
-    height: auto;
+    .project-gallery--fiches .project-photo {
+        padding: 0.5rem;
+    }
 }
