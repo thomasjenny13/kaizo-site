@@ -559,3 +559,19 @@ body {
 .logo-motion .lm-tee {
     fill: var(--black);
 }
+
+/* TdM 2026 boat sheets — 42 A2 pages, three across */
+.project-gallery--fiches {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 640px) {
+    .project-gallery--fiches {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+}
+
+.project-gallery--fiches .project-photo {
+    height: auto;
+}

@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&family=Unbounded:wght@800&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/page.css?v=11">
+    <link rel="stylesheet" href="css/page.css?v=12">
     <style>
         html, body {
             height: 100%;
@@ -103,31 +103,34 @@
             <div class="wheel-column">
                 <div class="wheel">
                     <div class="wheel-ring">
-                        <a class="wheel-tile" href="projets/affiche-lanas-2022.html" data-project="lanas-2022" style="--a: -120deg">
+                        <a class="wheel-tile" href="projets/affiche-lanas-2022.html" data-project="lanas-2022" style="--a: -108deg">
                             <img src="images/projets/affiches/affiche-lanas-2022/thumb.jpg" alt="Affiche Lanas 2022, Gîte Les Princes">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-lanas-2023.html" data-project="lanas-2023" style="--a: -80deg">
+                        <a class="wheel-tile" href="projets/affiche-lanas-2023.html" data-project="lanas-2023" style="--a: -72deg">
                             <img src="images/projets/affiches/affiche-lanas-2023/thumb.jpg" alt="Affiche Lanas 2023, Gîte Les Princes">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2024.html" data-project="tdm-2024" style="--a: -40deg">
+                        <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2024.html" data-project="tdm-2024" style="--a: -36deg">
                             <img src="images/projets/affiches/affiche-tradition-de-morges-2024/thumb.jpg?v=2" alt="Affiche La Tradition de Morges 2024">
                         </a>
                         <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2026.html" data-project="tdm-morges" style="--a: 0deg">
                             <img src="images/projets/affiches/affiche-tradition-de-morges-2026/thumb.png" alt="Affiche La Tradition de Morges 2026">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2023.html" data-project="semaine-du-soir" style="--a: 40deg">
+                        <a class="wheel-tile" href="projets/fiches-bateaux-tradition-de-morges-2026.html" data-project="tdm-fiches" style="--a: 36deg">
+                            <img src="images/projets/affiches/fiches-bateaux-tradition-de-morges-2026/thumb.jpg" alt="Fiches bateaux La Tradition de Morges 2026">
+                        </a>
+                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2023.html" data-project="semaine-du-soir" style="--a: 72deg">
                             <img src="images/projets/affiches/affiche-semaine-du-soir-2023/thumb.jpg" alt="Affiche Semaine du soir 2023, Club Nautique Morgien">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2024.html" data-project="semaine-du-soir-2024" style="--a: 80deg">
+                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2024.html" data-project="semaine-du-soir-2024" style="--a: 108deg">
                             <img src="images/projets/affiches/affiche-semaine-du-soir-2024/thumb.jpg" alt="Affiche Semaine du soir 2024, Club Nautique Morgien">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-camp-junior-2023.html" data-project="camp-junior" style="--a: 120deg">
+                        <a class="wheel-tile" href="projets/affiche-camp-junior-2023.html" data-project="camp-junior" style="--a: 144deg">
                             <img src="images/projets/affiches/affiche-camp-junior-2023/thumb.jpg" alt="Affiche Camp Junior 2023, Vaumarcus">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-camp-junior-100-ans-2024.html" data-project="camp-junior-100" style="--a: 160deg">
+                        <a class="wheel-tile" href="projets/affiche-camp-junior-100-ans-2024.html" data-project="camp-junior-100" style="--a: 180deg">
                             <img src="images/projets/affiches/affiche-camp-junior-100-ans-2024/thumb.jpg" alt="Affiche 100 ans du Camp Junior 2024, Vaumarcus">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-moto-show-2024.html" data-project="motoclub" style="--a: -160deg">
+                        <a class="wheel-tile" href="projets/affiche-moto-show-2024.html" data-project="motoclub" style="--a: -144deg">
                             <img src="images/projets/affiches/affiche-moto-show-2024/thumb.jpg" alt="Affiche Moto Show 2024, Moto Club Vevey">
                         </a>
                     </div>
@@ -183,7 +186,7 @@
             // Each wheel keeps its own progress and only reacts to
             // scroll/touch input while the pointer is over it, so spinning
             // one column never affects the other.
-            var STEP = 40; // degrees between adjacent tiles — must match the --a spacing in the HTML
+            var STEP = 40; // default spacing between adjacent tiles; a wheel with more tiles uses its own (see below)
 
             var wheelEls = document.querySelectorAll(".wheel");
             wheelEls.forEach(function (wheel) {
@@ -199,6 +202,13 @@
                 var tiles = Array.prototype.map.call(wheel.querySelectorAll(".wheel-tile"), function (tile) {
                     return { el: tile, base: parseFloat(tile.style.getPropertyValue("--a")) || 0 };
                 });
+                // Spacing = smallest gap between tile angles (Affiches has 10 tiles at 36°).
+                var step = tiles.reduce(function (m, a) {
+                    return tiles.reduce(function (m2, b) {
+                        var g = Math.abs(a.base - b.base);
+                        return g > 0 && g < m2 ? g : m2;
+                    }, m);
+                }, STEP);
                 var progress = 0;
                 var target = 0;
                 var velocity = 0;
@@ -217,7 +227,7 @@
                         var effective = ((t.base + progress) % 360 + 540) % 360 - 180;
                         var absEffective = Math.abs(effective);
                         var fade = Math.max(0, 1 - absEffective / 70);
-                        var magnet = Math.max(0, 1 - absEffective / (STEP / 2));
+                        var magnet = Math.max(0, 1 - absEffective / (step / 2));
                         t.el.style.opacity = fade;
                         t.el.style.setProperty("--tile-scale", (1 + magnet * 0.18).toFixed(3));
                         t.el.style.pointerEvents = fade < 0.15 ? "none" : "";
