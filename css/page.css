@@ -368,7 +368,8 @@ body {
     margin: 0;
 }
 
-.photo-grid .project-photo {
+.photo-grid .project-photo,
+.project-gallery--fiches .project-photo {
     cursor: zoom-in;
 }
 
@@ -422,6 +423,33 @@ body {
 .viewer-open,
 .viewer-open body {
     overflow: hidden;
+}
+
+/* Boat sheets: click the sheet to zoom it to full resolution. */
+.viewer--zoomable .viewer-img {
+    cursor: zoom-in;
+}
+
+.viewer.is-zoomed {
+    display: block;
+    overflow: auto;
+    cursor: zoom-out;
+}
+
+.viewer.is-zoomed .viewer-img {
+    max-width: none;
+    max-height: none;
+    width: max(100vw, 1414px);
+    height: auto;
+    cursor: zoom-out;
+}
+
+.viewer.is-zoomed .viewer-count {
+    display: none;
+}
+
+.viewer.is-zoomed .viewer-close {
+    position: fixed;
 }
 
 /* The series title stays within two of the three columns. */
