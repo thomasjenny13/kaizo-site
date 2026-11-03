@@ -103,34 +103,31 @@
             <div class="wheel-column">
                 <div class="wheel">
                     <div class="wheel-ring">
-                        <a class="wheel-tile" href="projets/affiche-lanas-2022.html" data-project="lanas-2022" style="--a: -108deg">
+                        <a class="wheel-tile" href="projets/affiche-lanas-2022.html" data-project="lanas-2022" style="--a: -120deg">
                             <img src="images/projets/affiches/affiche-lanas-2022/thumb.jpg" alt="Affiche Lanas 2022, Gîte Les Princes">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-lanas-2023.html" data-project="lanas-2023" style="--a: -72deg">
+                        <a class="wheel-tile" href="projets/affiche-lanas-2023.html" data-project="lanas-2023" style="--a: -80deg">
                             <img src="images/projets/affiches/affiche-lanas-2023/thumb.jpg" alt="Affiche Lanas 2023, Gîte Les Princes">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2024.html" data-project="tdm-2024" style="--a: -36deg">
+                        <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2024.html" data-project="tdm-2024" style="--a: -40deg">
                             <img src="images/projets/affiches/affiche-tradition-de-morges-2024/thumb.jpg?v=2" alt="Affiche La Tradition de Morges 2024">
                         </a>
                         <a class="wheel-tile" href="projets/affiche-tradition-de-morges-2026.html" data-project="tdm-morges" style="--a: 0deg">
                             <img src="images/projets/affiches/affiche-tradition-de-morges-2026/thumb.png" alt="Affiche La Tradition de Morges 2026">
                         </a>
-                        <a class="wheel-tile" href="projets/fiches-bateaux-tradition-de-morges-2026.html" data-project="tdm-fiches" style="--a: 36deg">
-                            <img src="images/projets/affiches/fiches-bateaux-tradition-de-morges-2026/thumb.jpg" alt="Fiches bateaux La Tradition de Morges 2026">
-                        </a>
-                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2023.html" data-project="semaine-du-soir" style="--a: 72deg">
+                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2023.html" data-project="semaine-du-soir" style="--a: 40deg">
                             <img src="images/projets/affiches/affiche-semaine-du-soir-2023/thumb.jpg" alt="Affiche Semaine du soir 2023, Club Nautique Morgien">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2024.html" data-project="semaine-du-soir-2024" style="--a: 108deg">
+                        <a class="wheel-tile" href="projets/affiche-semaine-du-soir-2024.html" data-project="semaine-du-soir-2024" style="--a: 80deg">
                             <img src="images/projets/affiches/affiche-semaine-du-soir-2024/thumb.jpg" alt="Affiche Semaine du soir 2024, Club Nautique Morgien">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-camp-junior-2023.html" data-project="camp-junior" style="--a: 144deg">
+                        <a class="wheel-tile" href="projets/affiche-camp-junior-2023.html" data-project="camp-junior" style="--a: 120deg">
                             <img src="images/projets/affiches/affiche-camp-junior-2023/thumb.jpg" alt="Affiche Camp Junior 2023, Vaumarcus">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-camp-junior-100-ans-2024.html" data-project="camp-junior-100" style="--a: 180deg">
+                        <a class="wheel-tile" href="projets/affiche-camp-junior-100-ans-2024.html" data-project="camp-junior-100" style="--a: 160deg">
                             <img src="images/projets/affiches/affiche-camp-junior-100-ans-2024/thumb.jpg" alt="Affiche 100 ans du Camp Junior 2024, Vaumarcus">
                         </a>
-                        <a class="wheel-tile" href="projets/affiche-moto-show-2024.html" data-project="motoclub" style="--a: -144deg">
+                        <a class="wheel-tile" href="projets/affiche-moto-show-2024.html" data-project="motoclub" style="--a: -160deg">
                             <img src="images/projets/affiches/affiche-moto-show-2024/thumb.jpg" alt="Affiche Moto Show 2024, Moto Club Vevey">
                         </a>
                     </div>
@@ -202,7 +199,7 @@
                 var tiles = Array.prototype.map.call(wheel.querySelectorAll(".wheel-tile"), function (tile) {
                     return { el: tile, base: parseFloat(tile.style.getPropertyValue("--a")) || 0 };
                 });
-                // Spacing = smallest gap between tile angles (Affiches has 10 tiles at 36°).
+                // Spacing = smallest gap between tile angles (40° on every wheel today).
                 var step = tiles.reduce(function (m, a) {
                     return tiles.reduce(function (m2, b) {
                         var g = Math.abs(a.base - b.base);
